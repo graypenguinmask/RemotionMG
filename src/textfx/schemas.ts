@@ -89,6 +89,15 @@ export const thumbSchema = z.object({
 });
 export type ThumbProps = z.infer<typeof thumbSchema>;
 
+export const wallSchema = z.object({
+  effectIds: z.array(effectIdSchema),
+  columns: z.number().int().positive(),
+  loopFrames: z.number().int().positive(),
+  background: z.string(),
+  color: z.string(),
+});
+export type WallProps = z.infer<typeof wallSchema>;
+
 /** 多场景串联成片：每个片段 = {type, props}。 */
 export const segmentSchema = z.discriminatedUnion('type', [
   z.object({type: z.literal('hero'), props: heroSchema}),
@@ -117,6 +126,7 @@ export const emphasisFrames = (p: {lines: unknown[]; timing: Timing}): number =>
 export const listFrames = (p: {items: unknown[]; stepFrames: number; inFrames: number}): number =>
   Math.max(0, p.items.length - 1) * p.stepFrames + p.inFrames + 30;
 export const galleryFrames = (p: {effectIds: number[]}): number => (p.effectIds.length + 3) * 40;
+export const wallFrames = (p: {loopFrames: number}): number => p.loopFrames * 2;
 
 export const segmentFrames = (s: ReelSegment): number => {
   switch (s.type) {

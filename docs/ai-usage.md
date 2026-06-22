@@ -3,7 +3,7 @@
 本项目把文字动效拆成两层，**其他 AI / 程序只需传 JSON props 即可渲染**，无需改动源码。
 
 - **动效原子**：100 个纯入场/出场效果，`id ∈ [1, 100]`（见下文清单）
-- **场景模板**：6 个布局/角色模板 + Reel 串联成片 + Thumb 缩略图，每个对应一个 Remotion 合成（Composition），props 化 + 自动算时长
+- **场景模板**：6 个布局/角色模板 + Reel 串联成片 + Thumb 缩略图 + Wall 动态预览墙，每个对应一个 Remotion 合成（Composition），props 化 + 自动算时长
 
 ## 1. 先查"有哪些可用"
 
@@ -13,14 +13,20 @@
 {
   "categories": { "A": "透明度 · 多项式与指数曲线", ... },
   "effects": [ { "id": 1, "category": "A", "name": "线性淡入", "enName": "Linear Fade", "formula": "opacity = t" }, ... ],  // 共 100 条
-  "scenes":  [ { "id": "SceneHero", "name": "主标题", "role": "...", "stacks": false, "propsKey": "entries[]" }, ... ]      // 共 8 条（含 Reel/Thumb）
+  "scenes":  [ { "id": "SceneHero", "name": "主标题", "role": "...", "stacks": false, "propsKey": "entries[]" }, ... ]      // 共 9 条（含 Reel/Thumb/Wall）
 }
 ```
 
 `effects[].thumbnail` 指向该效果的预览缩略图（`docs/thumbnails/<类别><编号>.png`，如 `thumbnails/K95.png`），
-AI 可据此"看图选效果"。整库一览见 [`docs/thumbnails-contact-sheet.png`](./thumbnails-contact-sheet.png)。
+AI / 人类都可据此"看图选效果"。
 
-重新生成：`npm run gen:manifest`（清单）、`npm run gen:thumbnails`（100 张缩略图，需先 `npm i`）。
+**人类快速预览（选效果）有四条路：**
+- 静态总览墙：[`docs/thumbnails-contact-sheet.png`](./thumbnails-contact-sheet.png)，一图看全 100 个中段状态。
+- 可点击预览页：[`docs/preview.html`](./preview.html)，浏览器直接打开，按 A–L 分类网格 + 编号/名称/公式，顶部搜索框可按编号/名称/公式过滤，点缩略图看大图。
+- 动态预览墙：渲染合成 `SceneWall`（100 效果网格同步循环），看"动起来"的样子。
+- 交互式实时：`npm run dev` → 打开 `SceneThumb`，右侧 schema 面板改 `effectId`(1–100) 实时预览。
+
+重新生成：`npm run gen:manifest`（清单）、`npm run gen:thumbnails`（100 张缩略图）、`npm run gen:preview`（HTML 预览页）。后两者需先 `npm i`。
 
 ## 2. 渲染：传 `--props` 即可
 
@@ -102,6 +108,12 @@ npx remotion render src/index.ts SceneReel reel.mp4 --props='{
 ```bash
 npx remotion still src/index.ts SceneThumb thumb.png --frame=0 --props='{"effectId":72,"background":"#0a0e1c","color":"#fff","fontSize":56}'
 ```
+
+**SceneWall · 动态预览墙**（全部效果网格同步循环，给人类一眼选效果；`effectIds` 留空=全部 100 法）
+```bash
+npx remotion render src/index.ts SceneWall wall.mp4 --props='{"effectIds":[],"columns":10,"loopFrames":90,"background":"#0a0e1c","color":"#fff"}'
+```
+> 注：`SceneWall` 同屏 100 格动画，渲染请用默认并发（`--concurrency 1`），过高并发可能 OOM。
 
 > 提示：Windows / 部分 shell 对单引号支持差，可把 JSON 写到文件再用 `--props=./props.json`。
 

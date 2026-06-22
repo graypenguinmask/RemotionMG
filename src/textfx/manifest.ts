@@ -42,6 +42,7 @@ export const SCENE_MANIFEST: SceneManifestEntry[] = [
   {id: 'SceneGallery', name: '目录陈列', role: '顺序陈列效果库 + 历史栈', stacks: true, propsKey: 'effectIds[]'},
   {id: 'SceneReel', name: '串联成片', role: '多场景按顺序拼成完整成片', stacks: false, propsKey: 'segments[]'},
   {id: 'SceneThumb', name: '缩略图', role: '单原子静态预览（生成选效果缩略图）', stacks: false, propsKey: 'effectId'},
+  {id: 'SceneWall', name: '动态预览墙', role: '全部效果网格同步循环（人类一眼选效果）', stacks: false, propsKey: 'effectIds[]'},
 ];
 
 export const CATEGORIES: Record<string, string> = {

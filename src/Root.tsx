@@ -20,6 +20,7 @@ import {EmphasisScene} from './textfx/scenes/EmphasisScene';
 import {GalleryScene} from './textfx/scenes/GalleryScene';
 import {ReelScene} from './textfx/scenes/ReelScene';
 import {ThumbScene} from './textfx/scenes/ThumbScene';
+import {WallScene} from './textfx/scenes/WallScene';
 import {
   heroSchema,
   captionSchema,
@@ -29,6 +30,7 @@ import {
   gallerySchema,
   reelSchema,
   thumbSchema,
+  wallSchema,
   heroFrames,
   captionFrames,
   listFrames,
@@ -36,6 +38,7 @@ import {
   emphasisFrames,
   galleryFrames,
   reelFrames,
+  wallFrames,
 } from './textfx/schemas';
 import {
   HERO_DEFAULT,
@@ -46,6 +49,7 @@ import {
   GALLERY_DEFAULT,
   REEL_DEFAULT,
   THUMB_DEFAULT,
+  WALL_DEFAULT,
 } from './textfx/presets';
 import {totalFrames} from './effects/showcaseKit';
 import {
@@ -214,6 +218,15 @@ export const RemotionRoot: React.FC = () => {
         schema={thumbSchema}
         defaultProps={THUMB_DEFAULT}
         durationInFrames={1}
+        {...COMMON}
+      />
+      <Composition
+        id="SceneWall"
+        component={WallScene}
+        schema={wallSchema}
+        defaultProps={WALL_DEFAULT}
+        durationInFrames={wallFrames(WALL_DEFAULT)}
+        calculateMetadata={({props}) => ({durationInFrames: wallFrames(props)})}
         {...COMMON}
       />
     </>

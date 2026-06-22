@@ -8,6 +8,7 @@ import {
   GalleryProps,
   ReelProps,
   ThumbProps,
+  WallProps,
 } from './schemas';
 import {EFFECTS} from './library';
 
@@ -90,6 +91,14 @@ export const GALLERY_DEFAULT: GalleryProps = {
   background: 'radial-gradient(circle at 50% 42%, #16213f 0%, #0a0e1c 60%, #05060d 100%)',
   color: '#ffffff',
   fontSize: 150,
+};
+
+export const WALL_DEFAULT: WallProps = {
+  effectIds: EFFECTS.map((e) => e.id),
+  columns: 10,
+  loopFrames: 90,
+  background: 'radial-gradient(circle at 50% 40%, #141a30 0%, #0a0e1c 60%, #05060d 100%)',
+  color: '#ffffff',
 };
 
 export const THUMB_DEFAULT: ThumbProps = {

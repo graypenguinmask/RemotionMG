@@ -27,6 +27,7 @@ export {EmphasisScene} from './scenes/EmphasisScene';
 export {GalleryScene} from './scenes/GalleryScene';
 export {ReelScene} from './scenes/ReelScene';
 export {ThumbScene} from './scenes/ThumbScene';
+export {WallScene} from './scenes/WallScene';
 export {seqAt, slotLen} from './scenes/sequence';
 
 // schema / 时长 / 默认 props
