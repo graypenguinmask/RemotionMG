@@ -741,6 +741,10 @@
 
 ## 五、效果库 + 场景模板架构（解耦）
 
+> 100 个效果在网格里同步循环（`SceneWall`）：
+>
+> ![wall](media/wall.webp)
+
 > **背景**：第四节把"主角入场 + 历史堆栈"这一套编排**强行套到全部 100 法**上，导致 glitch / 粒子这类本该是炸裂标题的效果，被硬接了一个字幕式的历史栈——这就是"割裂感"的来源。
 > **结论**：把**两个维度拆开**——「**动效原子**」只描述*单段文字怎么进 / 怎么出*；「**场景模板**」负责*布局 / 角色 / 停留 / 是否堆叠*。任意一个原子都能插进任意场景。
 
@@ -775,7 +779,7 @@ presence(phase, t) = phase==='in' ? ease(t) : 1 - ease(t)
 - `src/textfx/library.tsx` — 把全部 **100 法**实现为纯原子（A 复用原 `opacityCurves`，B–L 按各自数学重写为纯进 / 出）
 - `src/textfx/TextFx.tsx` — 渲染器：把「场景给的 baseStyle」与「效果给的 wrapper / content」组合
 
-### 5.2 场景模板（6 个）
+### 5.2 场景模板（9 个）
 
 | 场景 | 角色 | 布局 / 停留 | 堆叠 | 适配效果 | 合成 ID |
 |------|------|------------|------|----------|---------|
@@ -785,6 +789,21 @@ presence(phase, t) = phase==='in' ? ease(t) : 1 - ease(t)
 | **Lower-third 角标** | 左下、品牌竖条 | 滑入 → 停留 → 滑出 | 否 | 方向位移 / 遮罩擦除 | `SceneLowerThird` |
 | **Emphasis 行内强调** | 句中某词高亮 | 周边先淡入、强调词登场 | 否 | 弹簧 / 辉光 / 解码 / 计数 | `SceneEmphasis` |
 | **Gallery 目录陈列** | 主角 + 历史栈 | 顺序推上主角位 | 左上历史栈 | 任意（把库当内容陈列） | `SceneGallery` |
+| **Reel 串联成片** | 多场景拼成完整成片 | 各片段顺序播放、时长求和 | — | 任意（每段独立选效果） | `SceneReel` |
+| **Thumb 缩略图** | 单原子静态预览 | 定格在 t=0.62 | 否 | 任意（生成选效果缩略图） | `SceneThumb` |
+| **Wall 动态预览墙** | 全部效果网格同步循环 | 10×10 网格、统一 in→hold→out | 否 | 全库（人类一眼选效果） | `SceneWall` |
+
+各场景预览（动图）：
+
+| Hero | Caption | List |
+|------|---------|------|
+| ![hero](media/hero.webp) | ![caption](media/caption.webp) | ![list](media/list.webp) |
+| **LowerThird** | **Emphasis** | **Gallery** |
+| ![lowerthird](media/lowerthird.webp) | ![emphasis](media/emphasis.webp) | ![gallery](media/gallery.webp) |
+
+Reel 串联成片（片头 → 列表 → 角标 → 字幕 → 强调 → 结尾）：
+
+![reel](media/reel.webp)
 
 要点：
 - **Hero / Caption / Lower-third / Emphasis** 用统一的顺序编排 `seqAt(frame, {inF, holdF, outF})`：每条占一个 *入场 + 停留 + 出场* 的时槽，同一时刻只有一条在台上，**不堆叠**。
@@ -804,7 +823,8 @@ npx remotion render src/index.ts SceneHero out.mp4 --props='{"entries":[{"text":
 ```
 
 - 统一出口：`src/textfx/index.ts`（`EFFECTS` / 场景 / `TextFx` / schema / 清单 一处导入）
-- 机读清单：`docs/effects.json`（100 法 + 6 场景，`npm run gen:manifest` 重新生成）
+- 机读清单：`docs/effects.json`（100 法 + 9 场景，每条效果含 `thumbnail`，`npm run gen:manifest` 重新生成）
+- 人类快速选效果：`docs/preview.html`（可点击预览页）/ `docs/thumbnails-contact-sheet.png`（缩略图总览）/ `SceneWall`（动态预览墙）
 - 详细用法与各场景 props 示例：见 **`docs/ai-usage.md`**
 
 ---
