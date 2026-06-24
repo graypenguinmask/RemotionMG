@@ -3,1534 +3,572 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>主题配置器 / Theme Configurator — RemotionMG</title>
+<title>主题配置器 — RemotionMG</title>
 <style>
   :root {
     --bg: #08090f;
     --bg2: #0d1020;
     --card: #111528;
-    --card-hover: #161b35;
     --border: #1e2748;
     --text: #e8ecf5;
     --text2: #c0c8dd;
-    --muted: #6b7a9e;
-    --accent: #38e0ff;
-    --accent2: #7aa2ff;
-    --accent-glow: rgba(56,224,255,0.12);
-    --danger: #ff5d73;
+    --dim: #6b7a9e;
+    --acc: #38e0ff;
+    --acc2: #7aa2ff;
+    --glow: rgba(56,224,255,0.12);
+    --red: #ff5d73;
     --ok: #4ad9a0;
     --warn: #f0c040;
-    --r: 10px;
-    --rs: 6px;
+    --r: 8px;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    overflow-x: hidden;
-    padding-bottom: 80px;
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:12px;line-height:1.5}
 
-  /* ===== Top bar ===== */
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(8,9,15,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .topbar-title {
-    font-size: 0.92rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-  .topbar-title small { color: var(--muted); font-weight: 400; font-size: 0.7rem; margin-left: 6px; }
-  .topbar-spacer { flex: 1; }
-  .topbar-actions { display: flex; gap: 6px; align-items: center; }
+  /* === Shell === */
+  .shell{display:flex;flex-direction:column;height:100vh}
 
-  /* ===== Container ===== */
-  .container {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 24px 20px;
-  }
+  /* === Top bar === */
+  .top{height:38px;min-height:38px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+  .top-title{font-weight:700;font-size:13px;white-space:nowrap;margin-right:8px}
+  .theme-pills{display:flex;gap:3px;flex:1;min-width:0;overflow-x:auto}
+  .theme-pills::-webkit-scrollbar{display:none}
+  .tp{padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .12s;font-family:inherit}
+  .tp:hover{border-color:var(--dim);color:var(--text2)}
+  .tp.on{border-color:var(--acc);color:var(--acc);background:var(--glow)}
+  .tp .dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);flex-shrink:0}
+  .top-acts{display:flex;gap:4px;flex-shrink:0}
 
-  /* ===== Steps ===== */
-  .step {
-    margin-bottom: 24px;
-    position: relative;
-  }
-  .step-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .step-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #000;
-    font-size: 0.75rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .step-label { font-size: 0.9rem; font-weight: 700; }
-  .step-label small { color: var(--muted); font-weight: 400; font-size: 0.72rem; margin-left: 6px; }
+  /* === Body === */
+  .body{flex:1;display:flex;min-height:0}
 
-  /* ===== Preview section ===== */
-  .preview-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    margin-bottom: 28px;
-    overflow: hidden;
-  }
-  .preview-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,0,0,0.15);
-  }
-  .preview-top-label { font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-  .preview-top-spacer { flex: 1; }
-  .preview-stage {
-    width: 100%;
-    aspect-ratio: 16/9;
-    position: relative;
-    overflow: hidden;
-  }
-  .preview-stage-inner {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 20px;
-    overflow: hidden;
-  }
-  .preview-text {
-    white-space: nowrap;
-    will-change: transform, opacity, filter;
-  }
-  .preview-sub {
-    font-size: 11px;
-    margin-top: 6px;
-    letter-spacing: 2px;
-    opacity: 0.6;
-  }
-  .preview-label {
-    position: absolute;
-    left: 12px;
-    top: 10px;
-    font-size: 9px;
-    letter-spacing: 2px;
-    opacity: 0.3;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-  .preview-bottom {
-    padding: 10px 16px 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-top: 1px solid var(--border);
-    background: rgba(0,0,0,0.1);
-    flex-wrap: wrap;
-  }
-  .preview-chips {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    flex: 1;
-    min-width: 0;
-  }
-  .scene-chip {
-    padding: 3px 10px;
-    border-radius: 10px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    transition: all .12s;
-    white-space: nowrap;
-  }
-  .scene-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
-  .scene-chip:hover:not(.active) { border-color: var(--muted); color: var(--text2); }
-  .tl-bar {
-    flex: 1;
-    min-width: 80px;
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-  }
-  .tl-progress {
-    position: absolute;
-    left: 0; top: 0;
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.05s linear;
-  }
-  .tl-info {
-    font-size: 0.6rem;
-    color: var(--muted);
-    white-space: nowrap;
-    min-width: 90px;
-    text-align: right;
-  }
-  .play-btn {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--accent);
-    cursor: pointer;
-    font-size: 0.6rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all .12s;
-  }
-  .play-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
-  .speed-btn {
-    padding: 2px 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-size: 0.6rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all .12s;
-    font-family: inherit;
-  }
-  .speed-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* === Left panel === */
+  .left{width:50%;min-width:380px;display:flex;flex-direction:column;border-right:1px solid var(--border);min-height:0}
 
-  /* ===== Theme cards ===== */
-  .theme-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-  .theme-card {
-    border: 2px solid var(--border);
-    border-radius: var(--r);
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all .18s;
-    background: var(--card);
-    position: relative;
-    overflow: hidden;
-  }
-  .theme-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 4px; height: 100%;
-    opacity: 0;
-    transition: opacity .18s;
-  }
-  .theme-card:hover { border-color: var(--muted); background: var(--card-hover); transform: translateY(-1px); }
-  .theme-card.active { border-color: var(--accent); background: var(--accent-glow); }
-  .theme-card.active::before { opacity: 1; }
-  .tc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-  .tc-swatches {
-    display: flex;
-    gap: 3px;
-    flex-shrink: 0;
-  }
-  .tc-swatch {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,0.15);
-  }
-  .tc-name { font-weight: 700; font-size: 0.85rem; flex: 1; }
-  .tc-en { color: var(--muted); font-size: 0.68rem; }
-  .tc-families {
-    display: flex;
-    gap: 3px;
-    margin-top: 4px;
-    flex-wrap: wrap;
-  }
-  .tc-families span {
-    font-size: 0.58rem;
-    background: rgba(255,255,255,0.05);
-    padding: 1px 6px;
-    border-radius: 8px;
-    color: var(--muted);
-    font-weight: 600;
-  }
-  .theme-desc {
-    margin-top: 12px;
-    font-size: 0.76rem;
-    color: var(--text2);
-    padding: 10px 14px;
-    background: var(--bg2);
-    border-radius: var(--rs);
-    border-left: 3px solid var(--accent);
-    line-height: 1.6;
-  }
+  /* -- Scene tabs -- */
+  .scene-tabs{display:flex;gap:2px;padding:6px 10px 0;background:var(--bg2);flex-shrink:0}
+  .st{padding:4px 12px;border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border);border-bottom:none;background:var(--bg);color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;transition:all .1s;font-family:inherit;display:flex;align-items:center;gap:4px}
+  .st:hover{color:var(--text2)}
+  .st.on{background:var(--card);color:var(--acc);border-color:var(--acc)}
+  .st .sd{width:6px;height:6px;border-radius:50%}
+  .st .sd.has{background:var(--ok)}.st .sd.no{background:var(--border)}
 
-  /* ===== Section accordion ===== */
-  .accordion { margin-bottom: 8px; }
-  .acc-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    cursor: pointer;
-    user-select: none;
-    border-radius: var(--rs);
-    border: 1px solid var(--border);
-    background: var(--card);
-    transition: all .15s;
-  }
-  .acc-head:hover { background: var(--card-hover); border-color: var(--muted); }
-  .acc-head .arr {
-    font-size: 0.55rem;
-    color: var(--muted);
-    width: 14px;
-    text-align: center;
-    transition: transform .2s;
-    flex-shrink: 0;
-  }
-  .accordion.open .acc-head { border-color: var(--accent); background: var(--accent-glow); }
-  .accordion.open .arr { transform: rotate(90deg); color: var(--accent); }
-  .acc-label { font-weight: 600; font-size: 0.82rem; flex: 1; }
-  .acc-count {
-    font-size: 0.65rem;
-    color: var(--muted);
-    background: rgba(255,255,255,0.04);
-    padding: 2px 8px;
-    border-radius: 8px;
-  }
-  .acc-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    transition: background .2s;
-  }
-  .acc-dot.has { background: var(--ok); }
-  .acc-dot.empty { background: var(--border); }
-  .acc-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height .25s ease-out, padding .25s ease-out;
-    padding: 0 14px;
-    background: var(--bg2);
-    border-radius: 0 0 var(--rs) var(--rs);
-    border: 1px solid transparent;
-    border-top: none;
-  }
-  .accordion.open .acc-body {
-    max-height: 600px;
-    padding: 14px;
-    border-color: var(--border);
-    overflow-y: auto;
-  }
-  .acc-empty {
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.75rem;
-    padding: 16px 0;
-  }
+  /* -- Editor area -- */
+  .editor{flex:1;overflow-y:auto;padding:10px 12px;background:var(--card);min-height:0}
+  .editor::-webkit-scrollbar{width:4px}
+  .editor::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-  /* ===== Form controls ===== */
-  .fl {
-    display: block;
-    font-size: 0.68rem;
-    color: var(--muted);
-    margin-bottom: 3px;
-    margin-top: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-  }
-  .fl:first-child { margin-top: 0; }
-  input, select, textarea {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--rs);
-    color: var(--text);
-    padding: 8px 10px;
-    font-size: 0.82rem;
-    font-family: inherit;
-    transition: border-color .15s, box-shadow .15s;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-  textarea { resize: vertical; min-height: 50px; font-family: "Menlo", "Consolas", monospace; font-size: 0.78rem; }
-  input[type="number"] { -moz-appearance: textfield; }
-  input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+  .ed-row{display:flex;gap:4px;margin-bottom:4px;align-items:center}
+  .ed-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:11px;font-family:inherit;min-width:0}
+  .ed-row input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 2px var(--glow)}
+  .ed-row input.narrow{max-width:100px}
+  .ed-row input.em{border-color:var(--warn);font-weight:700}
+  .x-btn{width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--dim);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s}
+  .x-btn:hover{border-color:var(--red);color:var(--red);background:rgba(255,93,115,0.08)}
+  .add-btn{padding:3px 10px;border-radius:4px;border:1px dashed var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .1s;margin-top:2px}
+  .add-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--glow)}
+  .empty-msg{color:var(--dim);font-size:11px;text-align:center;padding:12px 0}
 
-  .row { display: flex; gap: 10px; }
-  .row > * { flex: 1; min-width: 0; }
+  /* -- Controls strip -- */
+  .controls{flex-shrink:0;padding:8px 12px;border-top:1px solid var(--border);background:var(--bg2)}
+  .ctrl-section{margin-bottom:6px}
+  .ctrl-label{font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+  .sl-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+  .sl-row .sl-name{font-size:10px;color:var(--dim);min-width:24px;font-weight:600}
+  .sl-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--border);border-radius:2px;outline:none;border:none;padding:0}
+  .sl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--acc);cursor:pointer;border:2px solid var(--bg)}
+  .sl-row input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--acc);cursor:pointer;border:2px solid var(--bg)}
+  .sl-row .sl-v{font-size:10px;font-weight:700;color:var(--acc);min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
 
-  /* ===== Entry rows ===== */
-  .entry-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 6px;
-    align-items: center;
-  }
-  .entry-row input { flex: 1; font-size: 0.8rem; padding: 7px 10px; }
-  .drag-handle {
-    width: 14px;
-    color: var(--border);
-    font-size: 0.7rem;
-    cursor: grab;
-    flex-shrink: 0;
-    text-align: center;
-    user-select: none;
-  }
+  .clr-row{display:flex;gap:8px;align-items:center}
+  .clr-item{display:flex;align-items:center;gap:3px}
+  .clr-item label{font-size:9px;color:var(--dim);font-weight:600}
+  .clr-item input[type=color]{width:18px;height:18px;padding:0;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:var(--bg);flex-shrink:0}
+  .clr-item input[type=text]{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);padding:2px 4px;font-size:10px;font-family:"Menlo","Consolas",monospace}
+  .clr-item input[type=text]:focus{outline:none;border-color:var(--acc)}
 
-  /* ===== Buttons ===== */
-  .btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px; height: 28px;
-    border-radius: var(--rs);
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.82rem;
-    transition: all .12s;
-    flex-shrink: 0;
-  }
-  .btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
-  .btn-icon.danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,93,115,0.08); }
+  .eo-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+  .eo-pair{display:flex;align-items:center;gap:2px;font-size:10px}
+  .eo-pair span{color:var(--dim);font-weight:600;font-size:9px;min-width:18px}
+  .eo-pair input{width:36px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);padding:2px 3px;font-size:10px;text-align:center;font-family:inherit}
+  .eo-pair input:focus{outline:none;border-color:var(--acc)}
+  .eo-sep{color:var(--border);margin:0 2px}
 
-  .btn-add {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 14px;
-    border-radius: var(--rs);
-    border: 1px dashed var(--border);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.72rem;
-    font-family: inherit;
-    transition: all .12s;
-    margin-top: 6px;
-  }
-  .btn-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+  /* === Right panel === */
+  .right{flex:1;display:flex;flex-direction:column;min-width:300px;min-height:0}
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px 18px;
-    border-radius: var(--r);
-    border: none;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all .15s;
-    font-family: inherit;
-    white-space: nowrap;
-  }
-  .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
-  .btn-primary { background: linear-gradient(135deg, #38e0ff, #2a9fd6); color: #000; }
-  .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-sm { padding: 6px 12px; font-size: 0.72rem; }
-  .btn-xs { padding: 4px 10px; font-size: 0.68rem; }
+  /* -- Preview -- */
+  .pv-header{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+  .pv-label{font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:1px}
+  .pv-spacer{flex:1}
+  .pv-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--acc);cursor:pointer;font-size:8px;display:flex;align-items:center;justify-content:center;transition:all .1s}
+  .pv-btn:hover{border-color:var(--acc);background:var(--glow)}
+  .sp-btn{padding:1px 6px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .1s}
+  .sp-btn:hover{border-color:var(--acc);color:var(--acc)}
 
-  /* ===== Slider controls ===== */
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-  .slider-row .sl-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--muted);
-    min-width: 50px;
-    text-transform: uppercase;
-  }
-  .slider-row input[type="range"] {
-    flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    outline: none;
-    border: none;
-    padding: 0;
-  }
-  .slider-row input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 6px var(--accent-glow);
-    transition: transform .1s;
-  }
-  .slider-row input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-  .slider-row input[type="range"]::-moz-range-thumb {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    border: 2px solid var(--bg);
-  }
-  .slider-row .sl-val {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--accent);
-    min-width: 36px;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
+  .pv-stage{flex:1;position:relative;overflow:hidden;min-height:120px}
+  .pv-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:16px;overflow:hidden}
+  .pv-text{white-space:nowrap;will-change:transform,opacity,filter}
+  .pv-sub{font-size:10px;margin-top:4px;letter-spacing:1.5px;opacity:0.5}
+  .pv-tag{position:absolute;left:8px;top:6px;font-size:8px;letter-spacing:1.5px;opacity:0.25;text-transform:uppercase;font-weight:700}
 
-  /* ===== Color inputs ===== */
-  .color-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 8px;
-  }
-  .color-item {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .color-item label { font-size: 0.65rem; color: var(--muted); font-weight: 600; min-width: 28px; }
-  .color-item input[type="color"] {
-    width: 28px; height: 28px;
-    padding: 0; border: 1.5px solid var(--border);
-    border-radius: var(--rs);
-    cursor: pointer;
-    background: var(--bg);
-    flex-shrink: 0;
-  }
-  .color-item input[type="text"] {
-    flex: 1;
-    font-size: 0.75rem;
-    padding: 5px 8px;
-    font-family: "Menlo", "Consolas", monospace;
-  }
+  .pv-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;flex-wrap:wrap}
+  .chips{display:flex;gap:3px;flex-wrap:wrap;flex:1;min-width:0}
+  .chip{padding:2px 7px;border-radius:8px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .1s;font-family:inherit}
+  .chip.on{border-color:var(--acc);color:var(--acc);background:var(--glow)}
+  .chip:hover:not(.on){border-color:var(--dim)}
+  .tl{flex:1;min-width:60px;height:3px;background:var(--border);border-radius:2px;position:relative;overflow:hidden}
+  .tl-p{position:absolute;left:0;top:0;height:100%;background:var(--acc);border-radius:2px;transition:width .05s linear}
+  .tl-i{font-size:9px;color:var(--dim);white-space:nowrap}
 
-  /* ===== Effect overrides grid ===== */
-  .eo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 6px;
-    margin-top: 8px;
-  }
-  .eo-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.72rem;
-    padding: 5px 8px;
-    background: var(--bg);
-    border-radius: var(--rs);
-    border: 1px solid var(--border);
-  }
-  .eo-item .eo-label {
-    color: var(--muted);
-    font-weight: 600;
-    font-size: 0.65rem;
-    min-width: 40px;
-    flex-shrink: 0;
-  }
-  .eo-item input[type="number"] {
-    width: 50px;
-    padding: 3px 5px;
-    font-size: 0.72rem;
-    text-align: center;
-    border: 1px solid var(--border);
-  }
+  /* -- Output -- */
+  .out{flex-shrink:0;border-top:1px solid var(--border);display:flex;flex-direction:column;max-height:40%;min-height:0}
+  .out-head{display:flex;align-items:center;gap:6px;padding:4px 10px;cursor:pointer;user-select:none;background:var(--bg2)}
+  .out-head:hover{background:rgba(255,255,255,0.02)}
+  .out-head .arr{font-size:8px;color:var(--dim);transition:transform .15s}
+  .out.open .out-head .arr{transform:rotate(90deg);color:var(--acc)}
+  .out-head .oh-l{font-size:10px;font-weight:600;flex:1}
+  .out-body{display:none;overflow:hidden;flex:1;min-height:0}
+  .out.open .out-body{display:flex;flex-direction:column}
+  .out-tabs{display:flex;gap:2px;padding:4px 10px 0;flex-shrink:0}
+  .ot{padding:2px 8px;border-radius:4px 4px 0 0;cursor:pointer;font-size:10px;font-weight:600;border:1px solid var(--border);border-bottom:none;background:var(--bg);color:var(--dim);font-family:inherit;transition:all .1s}
+  .ot.on{background:var(--card);color:var(--acc);border-color:var(--acc)}
+  .out-code{flex:1;overflow:auto;padding:6px 10px;font-family:"Menlo","Consolas",monospace;font-size:10px;white-space:pre-wrap;word-break:break-all;line-height:1.4;color:var(--text2);min-height:0;background:var(--bg)}
+  .tc{display:none}.tc.on{display:block}
 
-  /* ===== Output section ===== */
-  .output-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    overflow: hidden;
-  }
-  .output-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    cursor: pointer;
-    user-select: none;
-    transition: background .12s;
-  }
-  .output-head:hover { background: rgba(255,255,255,0.02); }
-  .output-head .arr { font-size: 0.55rem; color: var(--muted); transition: transform .2s; }
-  .output-wrap.open .output-head .arr { transform: rotate(90deg); color: var(--accent); }
-  .output-head .oh-label { font-size: 0.78rem; font-weight: 600; flex: 1; }
-  .output-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height .25s ease-out;
-  }
-  .output-wrap.open .output-body { max-height: 500px; overflow-y: auto; }
-  .output-inner { padding: 0 16px 16px; }
-  .tabs { display: flex; gap: 2px; margin-bottom: 8px; }
-  .tab {
-    padding: 5px 12px;
-    border-radius: var(--rs) var(--rs) 0 0;
-    cursor: pointer;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    background: var(--bg);
-    color: var(--muted);
-    transition: all .1s;
-    font-family: inherit;
-  }
-  .tab.active { background: var(--bg2); color: var(--accent); border-color: var(--accent); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .code-block {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 0 var(--rs) var(--rs) var(--rs);
-    padding: 10px 12px;
-    font-family: "Menlo", "Consolas", monospace;
-    font-size: 0.68rem;
-    max-height: 260px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-    line-height: 1.5;
-    color: var(--text2);
-  }
+  /* === Bottom bar === */
+  .bot{height:34px;min-height:34px;display:flex;align-items:center;gap:6px;padding:0 12px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+  .bot-info{font-size:10px;color:var(--dim);flex:1}
+  .btn{padding:5px 14px;border-radius:var(--r);border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;transition:all .12s;white-space:nowrap}
+  .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+  .btn-p{background:linear-gradient(135deg,#38e0ff,#2a9fd6);color:#000}
+  .btn-s{background:var(--card);border:1px solid var(--border);color:var(--text)}
+  .btn-s:hover{border-color:var(--acc);color:var(--acc)}
+  .btn-g{background:transparent;border:1px solid var(--border);color:var(--dim);font-size:10px;padding:4px 10px}
+  .btn-g:hover{border-color:var(--acc);color:var(--acc)}
 
-  /* ===== Floating bottom bar ===== */
-  .bottombar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: rgba(8,9,15,0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border);
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .bottombar .bb-info {
-    font-size: 0.68rem;
-    color: var(--muted);
-    margin-right: auto;
-  }
+  /* === Toast === */
+  .toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:var(--ok);color:#000;padding:6px 20px;border-radius:var(--r);font-weight:600;font-size:11px;z-index:999;animation:su .25s,fo 1.8s .4s forwards;box-shadow:0 3px 12px rgba(74,217,160,0.2)}
+  @keyframes su{from{transform:translateX(-50%) translateY(12px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+  @keyframes fo{0%,50%{opacity:1}100%{opacity:0}}
 
-  /* ===== Toast ===== */
-  .toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--ok);
-    color: #000;
-    padding: 10px 24px;
-    border-radius: var(--r);
-    font-weight: 600;
-    font-size: 0.82rem;
-    z-index: 999;
-    animation: slideUp .3s, fadeOut 2s .5s forwards;
-    box-shadow: 0 4px 20px rgba(74,217,160,0.25);
-  }
-  @keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-  @keyframes fadeOut { 0%,60% { opacity: 1; } 100% { opacity: 0; } }
-
-  .hint { font-size: 0.68rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
-  .sep { height: 1px; background: var(--border); margin: 16px 0; }
-
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-
-  @media (max-width: 600px) {
-    .topbar { padding: 0 12px; }
-    .container { padding: 16px 12px; }
-    .theme-grid { grid-template-columns: 1fr; }
-    .bottombar { padding: 10px 12px; gap: 6px; }
-    .bottombar .bb-info { display: none; }
-  }
-
-  /* ===== Kbd shortcuts hint ===== */
-  kbd {
-    display: inline-block;
-    padding: 1px 5px;
-    font-size: 0.6rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--muted);
-    font-family: inherit;
+  @media(max-width:760px){
+    .body{flex-direction:column}
+    .left{width:100%;min-width:0;max-height:55%}
+    .right{min-width:0}
   }
 </style>
 </head>
 <body>
+<div class="shell">
 
-<!-- ===== Top bar ===== -->
-<div class="topbar">
-  <div class="topbar-title">主题配置器<small>Theme Configurator</small></div>
-  <div class="topbar-spacer"></div>
-  <div class="topbar-actions">
-    <button class="btn btn-ghost btn-xs" onclick="resetConfig()" title="重置所有配置">重置</button>
+<!-- === Top bar === -->
+<div class="top">
+  <span class="top-title">主题配置器</span>
+  <div class="theme-pills" id="themePills"></div>
+  <div class="top-acts">
+    <button class="btn-g" onclick="resetConfig()">重置</button>
   </div>
 </div>
 
-<!-- ===== Main container ===== -->
-<div class="container">
+<!-- === Body === -->
+<div class="body">
 
-  <!-- Preview -->
-  <div class="preview-wrap">
-    <div class="preview-top">
-      <span class="preview-top-label">Live Preview</span>
-      <div class="preview-top-spacer"></div>
-      <button class="speed-btn" id="speedBtn" onclick="cycleSpeed()" title="播放速度">1x</button>
-      <button class="play-btn" id="playBtn" onclick="togglePlay()" title="播放/暂停">&#9654;</button>
-    </div>
-    <div class="preview-stage" id="previewStage">
-      <div class="preview-stage-inner" id="previewInner">
-        <div class="preview-label" id="previewLabel">HERO</div>
-        <div class="preview-text" id="previewText" style="font-size:28px;font-weight:800">主题成套动效</div>
-        <div class="preview-sub" id="previewSub"></div>
-      </div>
-    </div>
-    <div class="preview-bottom">
-      <div class="preview-chips" id="previewSceneChips"></div>
-      <div class="tl-bar"><div class="tl-progress" id="tlProgress"></div></div>
-      <span class="tl-info" id="tlInfo">入场 0.0s</span>
-    </div>
-  </div>
+  <!-- Left: Controls -->
+  <div class="left">
+    <!-- Scene tabs -->
+    <div class="scene-tabs" id="sceneTabs"></div>
 
-  <!-- Step 1: Theme -->
-  <div class="step">
-    <div class="step-header">
-      <span class="step-num">1</span>
-      <span class="step-label">选择主题<small>Theme</small></span>
-    </div>
-    <div class="theme-grid" id="themeGrid"></div>
-    <div class="theme-desc" id="themeDesc"></div>
-  </div>
+    <!-- Editor -->
+    <div class="editor" id="editorArea"></div>
 
-  <!-- Step 2: Content -->
-  <div class="step">
-    <div class="step-header">
-      <span class="step-num">2</span>
-      <span class="step-label">编辑内容<small>Content</small></span>
-    </div>
-
-    <div class="accordion open" id="sec-hero">
-      <div class="acc-head" onclick="toggleAcc('sec-hero')">
-        <span class="arr">&#9654;</span>
-        <span class="acc-label">主标题 Hero</span>
-        <span class="acc-count" id="count-hero"></span>
-        <span class="acc-dot" id="dot-hero"></span>
+    <!-- Controls strip -->
+    <div class="controls">
+      <div class="ctrl-section">
+        <div class="ctrl-label">时序 Timing</div>
+        <div class="sl-row"><span class="sl-name">入</span><input type="range" id="inF" min="4" max="60" value="20" oninput="sSync(this,'iv');uc()"><span class="sl-v" id="iv">20f</span></div>
+        <div class="sl-row"><span class="sl-name">停</span><input type="range" id="holdF" min="0" max="90" value="40" oninput="sSync(this,'hv');uc()"><span class="sl-v" id="hv">40f</span></div>
+        <div class="sl-row"><span class="sl-name">出</span><input type="range" id="outF" min="4" max="60" value="16" oninput="sSync(this,'ov');uc()"><span class="sl-v" id="ov">16f</span></div>
       </div>
-      <div class="acc-body">
-        <div id="heroEntries"></div>
-        <button class="btn-add" onclick="addHeroEntry()">+ 添加标题</button>
+      <div class="ctrl-section">
+        <div class="ctrl-label">配色</div>
+        <div class="clr-row">
+          <div class="clr-item"><label>背景</label><input type="color" id="bgC" value="#0a1320" oninput="cSync('bgC','bgT');uc()"><input type="text" id="bgT" placeholder="#hex" oninput="uc()"></div>
+          <div class="clr-item"><label>文字</label><input type="color" id="fgC" value="#eafcff" oninput="cSync('fgC','fgT');uc()"><input type="text" id="fgT" placeholder="#hex" oninput="uc()"></div>
+          <div class="clr-item"><label>强调</label><input type="color" id="acC" value="#38e0ff" oninput="cSync('acC','acT');uc()"><input type="text" id="acT" placeholder="#hex" oninput="uc()"></div>
+        </div>
       </div>
-    </div>
-
-    <div class="accordion" id="sec-list">
-      <div class="acc-head" onclick="toggleAcc('sec-list')">
-        <span class="arr">&#9654;</span>
-        <span class="acc-label">列表 List</span>
-        <span class="acc-count" id="count-list"></span>
-        <span class="acc-dot" id="dot-list"></span>
-      </div>
-      <div class="acc-body">
-        <label class="fl">标题</label>
-        <input id="listTitle" type="text" placeholder="列表标题" oninput="updateConfig()">
-        <label class="fl">条目</label>
-        <div id="listItems"></div>
-        <button class="btn-add" onclick="addListItem()">+ 添加条目</button>
-      </div>
-    </div>
-
-    <div class="accordion" id="sec-lowerThird">
-      <div class="acc-head" onclick="toggleAcc('sec-lowerThird')">
-        <span class="arr">&#9654;</span>
-        <span class="acc-label">角标 Lower-third</span>
-        <span class="acc-count" id="count-lowerThird"></span>
-        <span class="acc-dot" id="dot-lowerThird"></span>
-      </div>
-      <div class="acc-body">
-        <div id="lowerThirdEntries"></div>
-        <button class="btn-add" onclick="addLowerThirdEntry()">+ 添加角标</button>
-      </div>
-    </div>
-
-    <div class="accordion" id="sec-caption">
-      <div class="acc-head" onclick="toggleAcc('sec-caption')">
-        <span class="arr">&#9654;</span>
-        <span class="acc-label">字幕 Caption</span>
-        <span class="acc-count" id="count-caption"></span>
-        <span class="acc-dot" id="dot-caption"></span>
-      </div>
-      <div class="acc-body">
-        <div id="captionLines"></div>
-        <button class="btn-add" onclick="addCaptionLine()">+ 添加字幕</button>
-      </div>
-    </div>
-
-    <div class="accordion" id="sec-emphasis">
-      <div class="acc-head" onclick="toggleAcc('sec-emphasis')">
-        <span class="arr">&#9654;</span>
-        <span class="acc-label">强调 Emphasis</span>
-        <span class="acc-count" id="count-emphasis"></span>
-        <span class="acc-dot" id="dot-emphasis"></span>
-      </div>
-      <div class="acc-body">
-        <div id="emphasisLines"></div>
-        <button class="btn-add" onclick="addEmphasisLine()">+ 添加强调</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 3: Parameters -->
-  <div class="step">
-    <div class="step-header">
-      <span class="step-num">3</span>
-      <span class="step-label">调整参数<small>Overrides</small></span>
-    </div>
-
-    <label class="fl">时序 Timing</label>
-    <div class="slider-row">
-      <span class="sl-label">入场</span>
-      <input type="range" id="inF" min="4" max="60" value="20" oninput="syncSlider(this,'inF-val');updateConfig()">
-      <span class="sl-val" id="inF-val">20f</span>
-    </div>
-    <div class="slider-row">
-      <span class="sl-label">停留</span>
-      <input type="range" id="holdF" min="0" max="90" value="40" oninput="syncSlider(this,'holdF-val');updateConfig()">
-      <span class="sl-val" id="holdF-val">40f</span>
-    </div>
-    <div class="slider-row">
-      <span class="sl-label">出场</span>
-      <input type="range" id="outF" min="4" max="60" value="16" oninput="syncSlider(this,'outF-val');updateConfig()">
-      <span class="sl-val" id="outF-val">16f</span>
-    </div>
-    <div class="hint">默认值跟随主题。拖动滑块覆盖，30f = 1 秒。</div>
-
-    <label class="fl" style="margin-top:16px">配色覆盖</label>
-    <div class="color-row">
-      <div class="color-item">
-        <label>背景</label>
-        <input type="color" id="bgColor" value="#0a1320" oninput="syncColor('bgColor','bgText');updateConfig()">
-        <input type="text" id="bgText" placeholder="CSS 值" oninput="updateConfig()">
-      </div>
-      <div class="color-item">
-        <label>文字</label>
-        <input type="color" id="fgColor" value="#eafcff" oninput="syncColor('fgColor','fgText');updateConfig()">
-        <input type="text" id="fgText" placeholder="CSS 值" oninput="updateConfig()">
-      </div>
-      <div class="color-item">
-        <label>强调</label>
-        <input type="color" id="acColor" value="#38e0ff" oninput="syncColor('acColor','acText');updateConfig()">
-        <input type="text" id="acText" placeholder="CSS 值" oninput="updateConfig()">
-      </div>
-    </div>
-    <div class="hint">点击色块选色或直接输入 CSS 颜色值（如 #ff0、rgba(…)、渐变）。</div>
-
-    <!-- Advanced (collapsible) -->
-    <div class="output-wrap" style="margin-top:16px" id="advancedSection">
-      <div class="output-head" onclick="toggleWrap('advancedSection')">
-        <span class="arr">&#9654;</span>
-        <span class="oh-label">高级配置</span>
-      </div>
-      <div class="output-body">
-        <div class="output-inner">
-          <label class="fl">场景顺序</label>
-          <input id="orderInput" type="text" placeholder="hero,list,lowerThird,caption,emphasis" oninput="updateConfig()">
-          <div class="hint">逗号分隔，拖动或手动输入调整播放顺序</div>
-
-          <label class="fl" style="margin-top:12px">逐场景动效覆盖</label>
-          <div class="hint" style="margin-bottom:6px">输入 effectId (1-100) 覆盖主题默认动效</div>
-          <div class="eo-grid">
-            <div class="eo-item"><span class="eo-label">Hero 入</span><input id="eo-hero-in" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">Hero 出</span><input id="eo-hero-out" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">List 入</span><input id="eo-list-in" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">List 出</span><input id="eo-list-out" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">L-3rd 入</span><input id="eo-lowerThird-in" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">L-3rd 出</span><input id="eo-lowerThird-out" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">字幕 入</span><input id="eo-caption-in" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">字幕 出</span><input id="eo-caption-out" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">强调 入</span><input id="eo-emphasis-in" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-            <div class="eo-item"><span class="eo-label">强调 出</span><input id="eo-emphasis-out" type="number" min="1" max="100" placeholder="-" oninput="updateConfig()"></div>
-          </div>
+      <div class="ctrl-section" style="margin-bottom:0">
+        <div class="ctrl-label">动效覆盖 <span style="font-weight:400;text-transform:none">effectId 1-100</span></div>
+        <div class="eo-row">
+          <div class="eo-pair"><span>H入</span><input id="eo-hero-in" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <div class="eo-pair"><span>出</span><input id="eo-hero-out" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <span class="eo-sep">|</span>
+          <div class="eo-pair"><span>L入</span><input id="eo-list-in" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <div class="eo-pair"><span>出</span><input id="eo-list-out" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <span class="eo-sep">|</span>
+          <div class="eo-pair"><span>角入</span><input id="eo-lowerThird-in" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <div class="eo-pair"><span>出</span><input id="eo-lowerThird-out" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <span class="eo-sep">|</span>
+          <div class="eo-pair"><span>字入</span><input id="eo-caption-in" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <div class="eo-pair"><span>出</span><input id="eo-caption-out" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <span class="eo-sep">|</span>
+          <div class="eo-pair"><span>强入</span><input id="eo-emphasis-in" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
+          <div class="eo-pair"><span>出</span><input id="eo-emphasis-out" type="number" min="1" max="100" placeholder="-" oninput="uc()"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Output -->
-  <div class="step">
-    <div class="step-header">
-      <span class="step-num">4</span>
-      <span class="step-label">查看输出<small>Output</small></span>
+  <!-- Right: Preview + Output -->
+  <div class="right">
+    <div class="pv-header">
+      <span class="pv-label">预览</span>
+      <div class="pv-spacer"></div>
+      <button class="sp-btn" id="spBtn" onclick="cycleSpeed()">1x</button>
+      <button class="pv-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
     </div>
-    <div class="output-wrap open" id="outputSection">
-      <div class="output-head" onclick="toggleWrap('outputSection')">
-        <span class="arr">&#9654;</span>
-        <span class="oh-label">配置输出</span>
-        <div style="flex:1"></div>
-        <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();copyJson()">复制 JSON</button>
+    <div class="pv-stage" id="pvStage">
+      <div class="pv-inner" id="pvInner">
+        <div class="pv-tag" id="pvTag">HERO</div>
+        <div class="pv-text" id="pvText" style="font-size:24px;font-weight:800">预览</div>
+        <div class="pv-sub" id="pvSub"></div>
       </div>
-      <div class="output-body">
-        <div class="output-inner">
-          <div class="tabs">
-            <div class="tab active" onclick="switchTab('json',this)">theme.json</div>
-            <div class="tab" onclick="switchTab('readme',this)">README</div>
-            <div class="tab" onclick="switchTab('cmd',this)">渲染命令</div>
-          </div>
-          <div id="tab-json" class="tab-content active"><div class="code-block" id="jsonPreview"></div></div>
-          <div id="tab-readme" class="tab-content"><div class="code-block" id="readmePreview"></div></div>
-          <div id="tab-cmd" class="tab-content"><div class="code-block" id="cmdPreview"></div></div>
+    </div>
+    <div class="pv-bar">
+      <div class="chips" id="pvChips"></div>
+      <div class="tl"><div class="tl-p" id="tlP"></div></div>
+      <span class="tl-i" id="tlI">入场 0.0s</span>
+    </div>
+
+    <!-- Output -->
+    <div class="out open" id="outSec">
+      <div class="out-head" onclick="document.getElementById('outSec').classList.toggle('open')">
+        <span class="arr">&#9654;</span>
+        <span class="oh-l">输出</span>
+        <button class="btn-g" onclick="event.stopPropagation();copyJson()" style="font-size:9px;padding:2px 8px">复制</button>
+      </div>
+      <div class="out-body">
+        <div class="out-tabs">
+          <div class="ot on" onclick="stab('json',this)">JSON</div>
+          <div class="ot" onclick="stab('readme',this)">README</div>
+          <div class="ot" onclick="stab('cmd',this)">命令</div>
         </div>
+        <div id="t-json" class="tc on"><div class="out-code" id="oJson"></div></div>
+        <div id="t-readme" class="tc"><div class="out-code" id="oReadme"></div></div>
+        <div id="t-cmd" class="tc"><div class="out-code" id="oCmd"></div></div>
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- ===== Floating bottom bar ===== -->
-<div class="bottombar">
-  <span class="bb-info" id="bbInfo">5 场景 · glitch</span>
-  <button class="btn btn-primary" onclick="exportZip()">导出主题包 ZIP</button>
-  <button class="btn btn-secondary btn-sm" onclick="copyJson()">复制 JSON</button>
-  <button class="btn btn-ghost btn-sm" onclick="copyRenderCmd()">复制渲染命令</button>
+<!-- === Bottom bar === -->
+<div class="bot">
+  <span class="bot-info" id="botInfo">9 项 · glitch</span>
+  <button class="btn btn-p" onclick="exportZip()">导出 ZIP</button>
+  <button class="btn btn-s" onclick="copyJson()">复制 JSON</button>
+  <button class="btn btn-g" onclick="copyRenderCmd()">复制命令</button>
+</div>
+
 </div>
 
 <script>
 // ============================================================
-//  Data
-// ============================================================
-const THEMES = {
-  glitch: {
-    id:'glitch', name:'故障赛博', enName:'Glitch / Cyber', families:['H','K'],
-    description:'数字故障风：乱码解码登场、RGB 撕裂离场；等宽字体、青色高亮、深色背景。',
-    style:{background:'radial-gradient(circle at 50% 42%, #0a1320 0%, #060a12 60%, #03050a 100%)',color:'#eafcff',accent:'#38e0ff',barColor:'rgba(6,14,20,0.78)',fontFamily:'Menlo, Consolas, "Courier New", "PingFang SC", monospace',fontWeight:800,letterSpacing:1},
+const TH = {
+  glitch:{id:'glitch',name:'故障赛博',en:'Glitch',families:['H','K'],desc:'数字故障风：乱码解码登场、RGB 撕裂离场；等宽字体、青色高亮。',
+    style:{background:'radial-gradient(circle at 50% 42%,#0a1320 0%,#060a12 60%,#03050a 100%)',color:'#eafcff',accent:'#38e0ff',fontFamily:'Menlo,Consolas,"Courier New","PingFang SC",monospace',fontWeight:800,letterSpacing:1},
     timing:{inF:20,holdF:40,outF:16},
-    effects:{hero:{inEffectId:72,outEffectId:95},list:{inEffectId:74,outEffectId:74},lowerThird:{inEffectId:72,outEffectId:95},caption:{inEffectId:78,outEffectId:79},emphasis:{inEffectId:95,outEffectId:72}},
-    swatches:['#0a1320','#eafcff','#38e0ff']
-  },
-  soft: {
-    id:'soft', name:'柔和优雅', enName:'Soft / Focus', families:['D','B'],
-    description:'柔和聚焦风：从模糊对焦浮现、墨水晕染淡出；轻字重、蓝白配色，适合解说/科普。',
-    style:{background:'linear-gradient(180deg, #0c1426 0%, #0e1830 100%)',color:'#f2f6ff',accent:'#7aa2ff',barColor:'rgba(10,16,30,0.7)',fontFamily:'Arial, "PingFang SC", "Microsoft YaHei", sans-serif',fontWeight:600,letterSpacing:0},
+    effects:{hero:{i:72,o:95},list:{i:74,o:74},lowerThird:{i:72,o:95},caption:{i:78,o:79},emphasis:{i:95,o:72}},
+    sw:['#0a1320','#eafcff','#38e0ff']},
+  soft:{id:'soft',name:'柔和聚焦',en:'Soft',families:['D','B'],desc:'柔和聚焦风：模糊浮现、墨水淡出；蓝白配色。',
+    style:{background:'linear-gradient(180deg,#0c1426 0%,#0e1830 100%)',color:'#f2f6ff',accent:'#7aa2ff',fontFamily:'Arial,"PingFang SC","Microsoft YaHei",sans-serif',fontWeight:600,letterSpacing:0},
     timing:{inF:22,holdF:44,outF:18},
-    effects:{hero:{inEffectId:31,outEffectId:33},list:{inEffectId:11,outEffectId:11},lowerThird:{inEffectId:31,outEffectId:33},caption:{inEffectId:31,outEffectId:31},emphasis:{inEffectId:34,outEffectId:31}},
-    swatches:['#0c1426','#f2f6ff','#7aa2ff']
-  },
-  bouncy: {
-    id:'bouncy', name:'活力弹跳', enName:'Bouncy / Spring', families:['C','B'],
-    description:'弹性活泼风：弹簧弹出、旋转缩放螺入/出；橙色高亮、重字重，适合宣传/活动片。',
-    style:{background:'radial-gradient(circle at 50% 40%, #1c2350 0%, #0d1130 60%, #070920 100%)',color:'#ffffff',accent:'#ff7a3c',barColor:'rgba(12,16,40,0.72)',fontFamily:'Arial, "PingFang SC", "Microsoft YaHei", sans-serif',fontWeight:900,letterSpacing:0},
+    effects:{hero:{i:31,o:33},list:{i:11,o:11},lowerThird:{i:31,o:33},caption:{i:31,o:31},emphasis:{i:34,o:31}},
+    sw:['#0c1426','#f2f6ff','#7aa2ff']},
+  bouncy:{id:'bouncy',name:'活力弹跳',en:'Bouncy',families:['C','B'],desc:'弹性活泼风：弹簧弹出、旋转缩放；橙色高亮。',
+    style:{background:'radial-gradient(circle at 50% 40%,#1c2350 0%,#0d1130 60%,#070920 100%)',color:'#ffffff',accent:'#ff7a3c',fontFamily:'Arial,"PingFang SC","Microsoft YaHei",sans-serif',fontWeight:900,letterSpacing:0},
     timing:{inF:20,holdF:38,outF:16},
-    effects:{hero:{inEffectId:21,outEffectId:23},list:{inEffectId:13,outEffectId:13},lowerThird:{inEffectId:12,outEffectId:12},caption:{inEffectId:11,outEffectId:11},emphasis:{inEffectId:21,outEffectId:21}},
-    swatches:['#1c2350','#ffffff','#ff7a3c']
-  },
-  minimal: {
-    id:'minimal', name:'极简打字', enName:'Minimal / Type', families:['F'],
-    description:'极简打字风：打字机逐字登场、字距收拢离场；近黑背景、细字重，适合代码/技术向。',
-    style:{background:'linear-gradient(180deg, #0a0c12 0%, #0c0f16 100%)',color:'#f5f7fb',accent:'#9aa7bd',barColor:'rgba(8,10,16,0.8)',fontFamily:'Menlo, Consolas, "Courier New", "PingFang SC", monospace',fontWeight:500,letterSpacing:1},
+    effects:{hero:{i:21,o:23},list:{i:13,o:13},lowerThird:{i:12,o:12},caption:{i:11,o:11},emphasis:{i:21,o:21}},
+    sw:['#1c2350','#ffffff','#ff7a3c']},
+  minimal:{id:'minimal',name:'极简打字',en:'Minimal',families:['F'],desc:'极简打字风：打字机逐字登场；近黑背景、细字重。',
+    style:{background:'linear-gradient(180deg,#0a0c12 0%,#0c0f16 100%)',color:'#f5f7fb',accent:'#9aa7bd',fontFamily:'Menlo,Consolas,"Courier New","PingFang SC",monospace',fontWeight:500,letterSpacing:1},
     timing:{inF:24,holdF:42,outF:14},
-    effects:{hero:{inEffectId:51,outEffectId:58},list:{inEffectId:52,outEffectId:52},lowerThird:{inEffectId:11,outEffectId:11},caption:{inEffectId:51,outEffectId:51},emphasis:{inEffectId:51,outEffectId:58}},
-    swatches:['#0a0c12','#f5f7fb','#9aa7bd']
-  },
-  elegant: {
-    id:'elegant', name:'优雅衬线', enName:'Elegant / Serif', families:['E','G','D'],
-    description:'优雅衬线风：螺旋极坐标归位、辉光绽放强调；衬线字体、金色高亮，适合品牌/片头。',
-    style:{background:'radial-gradient(circle at 50% 40%, #20182a 0%, #120c18 60%, #0a060e 100%)',color:'#f6efe2',accent:'#d9b46a',barColor:'rgba(18,12,18,0.74)',fontFamily:'Georgia, "Times New Roman", "Songti SC", serif',fontWeight:600,letterSpacing:2},
+    effects:{hero:{i:51,o:58},list:{i:52,o:52},lowerThird:{i:11,o:11},caption:{i:51,o:51},emphasis:{i:51,o:58}},
+    sw:['#0a0c12','#f5f7fb','#9aa7bd']},
+  elegant:{id:'elegant',name:'优雅衬线',en:'Elegant',families:['E','G','D'],desc:'优雅衬线风：螺旋归位、辉光绽放；金色高亮。',
+    style:{background:'radial-gradient(circle at 50% 40%,#20182a 0%,#120c18 60%,#0a060e 100%)',color:'#f6efe2',accent:'#d9b46a',fontFamily:'Georgia,"Times New Roman","Songti SC",serif',fontWeight:600,letterSpacing:2},
     timing:{inF:24,holdF:46,outF:18},
-    effects:{hero:{inEffectId:47,outEffectId:40},list:{inEffectId:11,outEffectId:11},lowerThird:{inEffectId:69,outEffectId:63},caption:{inEffectId:11,outEffectId:11},emphasis:{inEffectId:34,outEffectId:31}},
-    swatches:['#20182a','#f6efe2','#d9b46a']
-  },
+    effects:{hero:{i:47,o:40},list:{i:11,o:11},lowerThird:{i:69,o:63},caption:{i:11,o:11},emphasis:{i:34,o:31}},
+    sw:['#20182a','#f6efe2','#d9b46a']},
 };
+const CAT={A:'透明度',B:'缓动',C:'缩放3D',D:'模糊',E:'波动',F:'逐字',G:'遮罩',H:'噪声',I:'粒子',J:'光影',K:'故障',L:'分形'};
+const DEMO={hero:{entries:[{text:'主题成套动效',sub:'One theme · consistent motion'}]},list:{title:'一个主题搞定整片',items:[{text:'标题、列表、字幕…自动协调'},{text:'入场/出场可分别切换'},{text:'配色/字体/节奏全主题统一'},{text:'导出即一份配置 JSON'}]},lowerThird:{entries:[{name:'林述白',role:'动态设计师'}]},caption:{lines:[{text:'选一个主题，整片风格一键成套。'},{text:'再逐场景微调入场与出场。'}]},emphasis:{lines:[{pre:'只需 ',token:'一个主题',post:' 即可统一全片。'}]}};
+const LB={hero:'主标题',list:'列表',lowerThird:'角标',caption:'字幕',emphasis:'强调'};
+const ORD=['hero','list','lowerThird','caption','emphasis'];
 
-const CAT = {A:'透明度',B:'缓动位移',C:'缩放3D',D:'模糊滤镜',E:'波动',F:'逐字符',G:'裁剪遮罩',H:'噪声随机',I:'粒子重组',J:'颜色光影',K:'故障信号',L:'分形混沌'};
+let S={theme:'glitch',content:structuredClone(DEMO)};
+let curTab='hero',timOv=false;
 
-const DEMO = {
-  hero:{entries:[{text:'主题成套动效',sub:'One theme · consistent motion'}]},
-  list:{title:'一个主题搞定整片',items:[{text:'标题、列表、字幕…自动协调'},{text:'入场/出场可分别切换'},{text:'配色/字体/节奏全主题统一'},{text:'导出即一份配置 JSON'}]},
-  lowerThird:{entries:[{name:'林述白',role:'动态设计师 / Motion Designer'}]},
-  caption:{lines:[{text:'选一个主题，整片风格一键成套。'},{text:'再逐场景微调入场与出场。'}]},
-  emphasis:{lines:[{pre:'只需 ',token:'一个主题',post:' 即可统一全片。'}]},
-};
+// === Init ===
+function init(){renderPills();renderSceneTabs();renderEditor();syncTim();uc();startPv();}
 
-const LABELS = {hero:'主标题',list:'列表',lowerThird:'角标',caption:'字幕',emphasis:'强调'};
-const ORDER = ['hero','list','lowerThird','caption','emphasis'];
-
-// ============================================================
-//  State
-// ============================================================
-let S = { theme: 'glitch', content: structuredClone(DEMO) };
-let timingOverride = false;
-
-// ============================================================
-//  Init
-// ============================================================
-function init() {
-  renderThemeGrid();
-  renderAllSections();
-  syncTimingFromTheme();
-  updateConfig();
-  startPreview();
-  document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportZip(); }
-  });
-}
-
-// ============================================================
-//  Theme grid with color swatches
-// ============================================================
-function renderThemeGrid() {
-  const g = document.getElementById('themeGrid');
-  g.innerHTML = '';
-  for (const [id, t] of Object.entries(THEMES)) {
-    const c = document.createElement('div');
-    c.className = 'theme-card' + (id === S.theme ? ' active' : '');
-    c.style.cssText = `--tc-accent:${t.style.accent}`;
-    c.setAttribute('data-id', id);
-    c.onclick = () => selectTheme(id);
-    const sw = (t.swatches || []).map(c => `<span class="tc-swatch" style="background:${c}"></span>`).join('');
-    c.innerHTML = `
-      <div class="tc-head">
-        <span class="tc-name">${t.name}</span>
-        <div class="tc-swatches">${sw}</div>
-      </div>
-      <div class="tc-en">${t.enName}</div>
-      <div class="tc-families">${t.families.map(f => `<span>${f}·${CAT[f]||f}</span>`).join('')}</div>
-    `;
-    c.querySelector('.theme-card')?.remove();
-    g.appendChild(c);
+// === Theme pills ===
+function renderPills(){
+  const c=document.getElementById('themePills');c.innerHTML='';
+  for(const[id,t]of Object.entries(TH)){
+    const b=document.createElement('button');
+    b.className='tp'+(id===S.theme?' on':'');
+    b.setAttribute('data-id',id);
+    b.onclick=()=>selTheme(id);
+    b.innerHTML=`<span class="dot" style="background:${t.sw[2]}"></span>${t.name}`;
+    c.appendChild(b);
   }
-  updateThemeDesc();
 }
+function selTheme(id){
+  S.theme=id;
+  document.querySelectorAll('.tp').forEach(b=>b.classList.toggle('on',b.getAttribute('data-id')===id));
+  if(!timOv)syncTim();uc();
+}
+function syncTim(){
+  const t=TH[S.theme].timing;
+  const a=document.getElementById('inF'),b=document.getElementById('holdF'),c=document.getElementById('outF');
+  a.value=t.inF;b.value=t.holdF;c.value=t.outF;
+  sSync(a,'iv');sSync(b,'hv');sSync(c,'ov');
+}
+function sSync(el,id){document.getElementById(id).textContent=el.value+'f';timOv=true;}
+function cSync(cId,tId){document.getElementById(tId).value=document.getElementById(cId).value;}
 
-function selectTheme(id) {
-  S.theme = id;
-  document.querySelectorAll('.theme-card').forEach(c => {
-    c.classList.toggle('active', c.getAttribute('data-id') === id);
-  });
-  updateThemeDesc();
-  if (!timingOverride) syncTimingFromTheme();
-  updateConfig();
-}
-
-function syncTimingFromTheme() {
-  const t = THEMES[S.theme].timing;
-  const inEl = document.getElementById('inF');
-  const holdEl = document.getElementById('holdF');
-  const outEl = document.getElementById('outF');
-  inEl.value = t.inF; holdEl.value = t.holdF; outEl.value = t.outF;
-  syncSlider(inEl, 'inF-val');
-  syncSlider(holdEl, 'holdF-val');
-  syncSlider(outEl, 'outF-val');
-}
-
-function updateThemeDesc() {
-  const t = THEMES[S.theme];
-  document.getElementById('themeDesc').textContent = t ? t.description : '';
-}
-
-// ============================================================
-//  Accordion
-// ============================================================
-function toggleAcc(id) { document.getElementById(id).classList.toggle('open'); }
-function toggleWrap(id) { document.getElementById(id).classList.toggle('open'); }
-
-// ============================================================
-//  Slider + Color helpers
-// ============================================================
-function syncSlider(el, valId) {
-  document.getElementById(valId).textContent = el.value + 'f';
-  timingOverride = true;
-}
-function syncColor(colorId, textId) {
-  document.getElementById(textId).value = document.getElementById(colorId).value;
-}
-
-// ============================================================
-//  Content editors
-// ============================================================
-function renderAllSections() {
-  renderHeroEntries(); renderListItems(); renderLowerThirdEntries();
-  renderCaptionLines(); renderEmphasisLines(); updateCounts();
-}
-function updateCounts() {
-  const counts = {
-    hero: S.content.hero?.entries?.length || 0,
-    list: S.content.list?.items?.length || 0,
-    lowerThird: S.content.lowerThird?.entries?.length || 0,
-    caption: S.content.caption?.lines?.length || 0,
-    emphasis: S.content.emphasis?.lines?.length || 0,
-  };
-  for (const [k, v] of Object.entries(counts)) {
-    document.getElementById(`count-${k}`).textContent = v ? `${v} 条` : '空';
-    document.getElementById(`dot-${k}`).className = 'acc-dot ' + (v ? 'has' : 'empty');
-  }
-  const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  document.getElementById('bbInfo').textContent = `${total} 项内容 · ${THEMES[S.theme].name}`;
-}
-
-function renderHeroEntries() {
-  const c = document.getElementById('heroEntries');
-  c.innerHTML = '';
-  const entries = S.content.hero?.entries || [];
-  if (!entries.length) { c.innerHTML = '<div class="acc-empty">暂无标题，点击下方按钮添加</div>'; return; }
-  entries.forEach((e, i) => {
-    const r = document.createElement('div');
-    r.className = 'entry-row';
-    r.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <input type="text" placeholder="标题文字" value="${esc(e.text)}" oninput="editHeroEntry(${i},'text',this.value)">
-      <input type="text" placeholder="副标题" value="${esc(e.sub||'')}" oninput="editHeroEntry(${i},'sub',this.value)" style="max-width:140px">
-      <button class="btn-icon danger" onclick="removeHeroEntry(${i})" title="删除">&#10005;</button>
-    `;
-    c.appendChild(r);
-  });
-}
-function addHeroEntry() {
-  if (!S.content.hero) S.content.hero = {entries:[]};
-  S.content.hero.entries.push({text:'新标题',sub:''});
-  renderHeroEntries(); updateCounts(); updateConfig();
-}
-function editHeroEntry(i,f,v) { S.content.hero.entries[i][f]=v; updateConfig(); }
-function removeHeroEntry(i) { S.content.hero.entries.splice(i,1); renderHeroEntries(); updateCounts(); updateConfig(); }
-
-function renderListItems() {
-  const c = document.getElementById('listItems');
-  c.innerHTML = '';
-  document.getElementById('listTitle').value = S.content.list?.title || '';
-  const items = S.content.list?.items || [];
-  if (!items.length) { c.innerHTML = '<div class="acc-empty">暂无条目</div>'; return; }
-  items.forEach((it, i) => {
-    const r = document.createElement('div');
-    r.className = 'entry-row';
-    r.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <input type="text" placeholder="条目内容" value="${esc(it.text)}" oninput="editListItem(${i},this.value)">
-      <button class="btn-icon danger" onclick="removeListItem(${i})" title="删除">&#10005;</button>
-    `;
-    c.appendChild(r);
-  });
-}
-function addListItem() {
-  if (!S.content.list) S.content.list = {title:'',items:[]};
-  S.content.list.items.push({text:'新条目'});
-  renderListItems(); updateCounts(); updateConfig();
-}
-function editListItem(i,v) { S.content.list.items[i].text=v; updateConfig(); }
-function removeListItem(i) { S.content.list.items.splice(i,1); renderListItems(); updateCounts(); updateConfig(); }
-
-function renderLowerThirdEntries() {
-  const c = document.getElementById('lowerThirdEntries');
-  c.innerHTML = '';
-  const entries = S.content.lowerThird?.entries || [];
-  if (!entries.length) { c.innerHTML = '<div class="acc-empty">暂无角标</div>'; return; }
-  entries.forEach((e, i) => {
-    const r = document.createElement('div');
-    r.className = 'entry-row';
-    r.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <input type="text" placeholder="姓名" value="${esc(e.name)}" oninput="editLT(${i},'name',this.value)">
-      <input type="text" placeholder="角色/头衔" value="${esc(e.role)}" oninput="editLT(${i},'role',this.value)">
-      <button class="btn-icon danger" onclick="removeLT(${i})" title="删除">&#10005;</button>
-    `;
-    c.appendChild(r);
-  });
-}
-function addLowerThirdEntry() {
-  if (!S.content.lowerThird) S.content.lowerThird = {entries:[]};
-  S.content.lowerThird.entries.push({name:'姓名',role:'角色'});
-  renderLowerThirdEntries(); updateCounts(); updateConfig();
-}
-function editLT(i,f,v) { S.content.lowerThird.entries[i][f]=v; updateConfig(); }
-function removeLT(i) { S.content.lowerThird.entries.splice(i,1); renderLowerThirdEntries(); updateCounts(); updateConfig(); }
-
-function renderCaptionLines() {
-  const c = document.getElementById('captionLines');
-  c.innerHTML = '';
-  const lines = S.content.caption?.lines || [];
-  if (!lines.length) { c.innerHTML = '<div class="acc-empty">暂无字幕</div>'; return; }
-  lines.forEach((l, i) => {
-    const r = document.createElement('div');
-    r.className = 'entry-row';
-    r.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <input type="text" placeholder="字幕文字" value="${esc(l.text)}" oninput="editCap(${i},this.value)">
-      <button class="btn-icon danger" onclick="removeCap(${i})" title="删除">&#10005;</button>
-    `;
-    c.appendChild(r);
-  });
-}
-function addCaptionLine() {
-  if (!S.content.caption) S.content.caption = {lines:[]};
-  S.content.caption.lines.push({text:'新字幕'});
-  renderCaptionLines(); updateCounts(); updateConfig();
-}
-function editCap(i,v) { S.content.caption.lines[i].text=v; updateConfig(); }
-function removeCap(i) { S.content.caption.lines.splice(i,1); renderCaptionLines(); updateCounts(); updateConfig(); }
-
-function renderEmphasisLines() {
-  const c = document.getElementById('emphasisLines');
-  c.innerHTML = '';
-  const lines = S.content.emphasis?.lines || [];
-  if (!lines.length) { c.innerHTML = '<div class="acc-empty">暂无强调</div>'; return; }
-  lines.forEach((l, i) => {
-    const d = document.createElement('div');
-    d.className = 'entry-row';
-    d.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <input type="text" placeholder="前缀" value="${esc(l.pre)}" oninput="editEmp(${i},'pre',this.value)" style="max-width:70px">
-      <input type="text" placeholder="强调词" value="${esc(l.token)}" oninput="editEmp(${i},'token',this.value)" style="border-color:var(--warn);font-weight:700">
-      <input type="text" placeholder="后缀" value="${esc(l.post)}" oninput="editEmp(${i},'post',this.value)" style="max-width:70px">
-      <button class="btn-icon danger" onclick="removeEmp(${i})" title="删除">&#10005;</button>
-    `;
-    c.appendChild(d);
-  });
-}
-function addEmphasisLine() {
-  if (!S.content.emphasis) S.content.emphasis = {lines:[]};
-  S.content.emphasis.lines.push({pre:'',token:'强调',post:''});
-  renderEmphasisLines(); updateCounts(); updateConfig();
-}
-function editEmp(i,f,v) { S.content.emphasis.lines[i][f]=v; updateConfig(); }
-function removeEmp(i) { S.content.emphasis.lines.splice(i,1); renderEmphasisLines(); updateCounts(); updateConfig(); }
-
-// ============================================================
-//  Build config
-// ============================================================
-function buildConfig() {
-  const cfg = {theme: S.theme, content: {}};
-  if (S.content.hero?.entries?.length) cfg.content.hero = S.content.hero;
-  if (S.content.list?.items?.length) {
-    cfg.content.list = {items: S.content.list.items};
-    if (S.content.list.title) cfg.content.list.title = S.content.list.title;
-  }
-  if (S.content.lowerThird?.entries?.length) cfg.content.lowerThird = S.content.lowerThird;
-  if (S.content.caption?.lines?.length) cfg.content.caption = S.content.caption;
-  if (S.content.emphasis?.lines?.length) cfg.content.emphasis = S.content.emphasis;
-
-  const orderVal = document.getElementById('orderInput').value.trim();
-  if (orderVal) {
-    const parts = orderVal.split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length) cfg.order = parts;
-  }
-
-  if (timingOverride) {
-    const inF = parseInt(document.getElementById('inF').value);
-    const holdF = parseInt(document.getElementById('holdF').value);
-    const outF = parseInt(document.getElementById('outF').value);
-    cfg.timing = {inF, holdF, outF};
-  }
-
-  const style = {};
-  const bg = document.getElementById('bgText').value.trim();
-  const fg = document.getElementById('fgText').value.trim();
-  const ac = document.getElementById('acText').value.trim();
-  if (bg) style.background = bg;
-  if (fg) style.color = fg;
-  if (ac) style.accent = ac;
-  if (Object.keys(style).length) cfg.style = style;
-
-  const effects = {};
-  for (const role of ORDER) {
-    const inId = parseInt(document.getElementById(`eo-${role}-in`).value);
-    const outId = parseInt(document.getElementById(`eo-${role}-out`).value);
-    if (inId >= 1 && inId <= 100 && outId >= 1 && outId <= 100) {
-      effects[role] = {inEffectId: inId, outEffectId: outId};
-    }
-  }
-  if (Object.keys(effects).length) cfg.effects = effects;
-  return cfg;
-}
-
-// ============================================================
-//  Update outputs
-// ============================================================
-function updateConfig() {
-  const cfg = buildConfig();
-  const json = JSON.stringify(cfg, null, 2);
-  document.getElementById('jsonPreview').textContent = json;
-  document.getElementById('readmePreview').textContent = genReadme(cfg);
-  document.getElementById('cmdPreview').textContent = `npx remotion render src/index.ts SceneTheme out.mp4 --props='${json.trim()}'`;
-  restartPreview();
-}
-
-function genReadme(cfg) {
-  const theme = THEMES[cfg.theme];
-  if (!theme) return 'Error: theme not found';
-  const json = JSON.stringify(cfg, null, 2);
-  const cmd = `npx remotion render src/index.ts SceneTheme out.mp4 --props='${json.trim()}'`;
-  const sl = {hero:['主标题','Hero'],list:['列表','List'],lowerThird:['角标','Lower-third'],caption:['字幕','Caption'],emphasis:['强调','Emphasis']};
-  const order = cfg.order || ORDER;
-  const active = order.filter(r => cfg.content[r]);
-  const list = active.map(r => `${sl[r][0]} (${sl[r][1]})`).join(' → ');
-  const t = cfg.timing || theme.timing;
-  const slot = t.inF + t.holdF + t.outF;
-  let frames = 0;
-  if (cfg.content.hero) frames += (cfg.content.hero.entries.length||1)*slot;
-  if (cfg.content.list) frames += Math.max(0,(cfg.content.list.items.length-1))*22+18+30;
-  if (cfg.content.lowerThird) frames += (cfg.content.lowerThird.entries.length||1)*slot;
-  if (cfg.content.caption) frames += (cfg.content.caption.lines.length||1)*slot;
-  if (cfg.content.emphasis) frames += (cfg.content.emphasis.lines.length||1)*slot;
-  if (!frames) frames = slot;
-  return `# Theme: ${theme.name} / ${theme.enName}\n\n> ${theme.description}\n\n## Render\n\`\`\`bash\n${cmd}\n\`\`\`\n\nScenes: ${list}\nDuration: ${frames}f (${(frames/30).toFixed(1)}s @ 30fps)\nTiming: in=${t.inF}f hold=${t.holdF}f out=${t.outF}f`;
-}
-
-function switchTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-}
-
-// ============================================================
-//  Preview engine
-// ============================================================
-let anim = null, playing = true, scIdx = 0, phase = 'in', pT = 0, lastTs = 0;
-let speed = 1;
-const SPEEDS = [0.5, 1, 1.5, 2];
-let speedIdx = 1;
-
-function cycleSpeed() {
-  speedIdx = (speedIdx + 1) % SPEEDS.length;
-  speed = SPEEDS[speedIdx];
-  document.getElementById('speedBtn').textContent = speed + 'x';
-}
-
-function getScenes() {
-  const cfg = buildConfig();
-  const order = cfg.order || ORDER;
-  const scenes = [];
-  for (const role of order) {
-    const c = cfg.content[role];
-    if (!c) continue;
-    const theme = THEMES[S.theme];
-    const eff = cfg.effects?.[role] || theme.effects[role];
-    const style = {...theme.style, ...(cfg.style||{})};
-    const timing = cfg.timing || theme.timing;
-    if (role==='hero' && c.entries?.length) {
-      for (const e of c.entries) scenes.push({role,text:e.text,sub:e.sub||'',eff,style,timing,fs:28,fw:style.fontWeight});
-    } else if (role==='list' && c.items?.length) {
-      for (const it of c.items) scenes.push({role,text:it.text,sub:'',eff,style,timing,fs:16,fw:style.fontWeight});
-    } else if (role==='lowerThird' && c.entries?.length) {
-      for (const e of c.entries) scenes.push({role,text:e.name,sub:e.role,eff,style,timing,fs:20,fw:style.fontWeight});
-    } else if (role==='caption' && c.lines?.length) {
-      for (const l of c.lines) scenes.push({role,text:l.text,sub:'',eff,style,timing,fs:16,fw:style.fontWeight});
-    } else if (role==='emphasis' && c.lines?.length) {
-      for (const l of c.lines) scenes.push({role,text:l.pre,token:l.token,post:l.post,sub:'',eff,style,timing,fs:20,fw:style.fontWeight,accent:style.accent});
-    }
-  }
-  if (!scenes.length) {
-    const theme = THEMES[S.theme];
-    scenes.push({role:'hero',text:'预览',sub:'',eff:theme.effects.hero,style:theme.style,timing:theme.timing,fs:28,fw:800});
-  }
-  return scenes;
-}
-
-function renderChips(scenes) {
-  const c = document.getElementById('previewSceneChips');
-  c.innerHTML = '';
-  scenes.forEach((s, i) => {
-    const b = document.createElement('button');
-    b.className = 'scene-chip' + (i === scIdx ? ' active' : '');
-    b.textContent = LABELS[s.role] || s.role;
-    b.onclick = () => { scIdx = Math.min(i, scenes.length-1); pT=0; phase='in'; lastTs=0; renderChips(scenes); };
+// === Scene tabs ===
+function renderSceneTabs(){
+  const c=document.getElementById('sceneTabs');c.innerHTML='';
+  ORD.forEach(r=>{
+    const b=document.createElement('button');
+    b.className='st'+(r===curTab?' on':'');
+    b.setAttribute('data-r',r);
+    b.onclick=()=>{curTab=r;renderSceneTabs();renderEditor();};
+    const cnt=getCnt(r);
+    b.innerHTML=`<span class="sd ${cnt?'has':'no'}"></span>${LB[r]}`;
     c.appendChild(b);
   });
 }
+function getCnt(r){
+  const c=S.content[r];
+  if(!c)return 0;
+  if(r==='hero')return c.entries?.length||0;
+  if(r==='list')return c.items?.length||0;
+  if(r==='lowerThird')return c.entries?.length||0;
+  if(r==='caption')return c.lines?.length||0;
+  if(r==='emphasis')return c.lines?.length||0;
+  return 0;
+}
 
-function simFx(id, ph, t) {
-  const cat = Math.ceil(id/10);
-  const ez = t => 1 - Math.pow(1-t, 3);
-  const p = ph==='in' ? ez(Math.min(1,Math.max(0,t))) : 1 - ez(Math.min(1,Math.max(0,t)));
-  const st = {};
-  switch(cat) {
-    case 1: st.opacity=p; break;
-    case 2: st.opacity=Math.min(1,p*2); st.transform=`translateY(${(1-p)*40}px)`; break;
-    case 3: st.opacity=Math.min(1,p*1.5); st.transform=`scale(${0.3+p*0.7}) rotate(${(ph==='in'?-1:1)*(1-p)*15}deg)`; break;
-    case 4: st.opacity=p; st.filter=`blur(${(1-p)*8}px)`; break;
-    case 5: st.opacity=p; st.transform=`translateY(${Math.sin(t*Math.PI*3)*(1-p)*12}px) rotate(${(1-p)*8}deg)`; break;
-    case 6: st.opacity=1; st.clipPath=`inset(0 ${(1-p)*100}% 0 0)`; st.transform=`translateX(${(1-p)*-10}px)`; break;
-    case 7: st.opacity=1; st.clipPath=id%2===1?`inset(${(1-p)*50}% 0 ${(1-p)*50}% 0)`:`inset(0 ${(1-p)*50}% 0 ${(1-p)*50}%)`; break;
-    case 8: st.opacity=Math.min(1,p*1.5); st.transform=`translate(${(1-p)*Math.sin(t*37)*8}px,${(1-p)*Math.cos(t*53)*4}px)`; st.filter=`brightness(${1+(1-p)*0.5})`; break;
-    case 9: st.opacity=p; st.transform=`scale(${0.2+p*0.8}) rotate(${(1-p)*180}deg)`; st.filter=`blur(${(1-p)*3}px)`; break;
-    case 10: st.opacity=p; st.filter=`brightness(${1+(1-p)*1.5}) saturate(${0.5+p*0.5})`; st.transform=`scale(${0.95+p*0.05})`; break;
-    case 11: st.opacity=Math.min(1,p*2); st.transform=`translateX(${(1-p)*Math.sin(t*100)*6}px) skewX(${(1-p)*8}deg)`; st.filter=`hue-rotate(${(1-p)*90}deg) brightness(${1+(1-p)*0.8})`; break;
-    case 12: st.opacity=p; st.transform=`translate(${(1-p)*Math.sin(t*23)*15}px,${(1-p)*Math.cos(t*31)*8}px) rotate(${(1-p)*Math.sin(t*17)*20}deg) scale(${0.5+p*0.5})`; break;
-    default: st.opacity=p;
+// === Editor ===
+function renderEditor(){
+  const c=document.getElementById('editorArea');c.innerHTML='';
+  const r=curTab;
+  if(r==='hero')renderHero(c);
+  else if(r==='list')renderList(c);
+  else if(r==='lowerThird')renderLT(c);
+  else if(r==='caption')renderCap(c);
+  else if(r==='emphasis')renderEmp(c);
+}
+
+function renderHero(c){
+  const ent=S.content.hero?.entries||[];
+  if(!ent.length){c.innerHTML='<div class="empty-msg">暂无标题</div>';addBtn(c,()=>{if(!S.content.hero)S.content.hero={entries:[]};S.content.hero.entries.push({text:'新标题',sub:''});refresh();});return;}
+  ent.forEach((e,i)=>{
+    const d=mk('div','ed-row');
+    d.innerHTML=`<input placeholder="标题" value="${esc(e.text)}" oninput="S.content.hero.entries[${i}].text=this.value;uc()"><input class="narrow" placeholder="副标题" value="${esc(e.sub||'')}" oninput="S.content.hero.entries[${i}].sub=this.value;uc()"><button class="x-btn" onclick="S.content.hero.entries.splice(${i},1);refresh()">&#10005;</button>`;
+    c.appendChild(d);
+  });
+  addBtn(c,()=>{S.content.hero.entries.push({text:'新标题',sub:''});refresh();});
+}
+function renderList(c){
+  const d1=mk('div','ed-row');
+  d1.innerHTML=`<input placeholder="列表标题" value="${esc(S.content.list?.title||'')}" oninput="if(!S.content.list)S.content.list={title:'',items:[]};S.content.list.title=this.value;uc()">`;
+  c.appendChild(d1);
+  const items=S.content.list?.items||[];
+  if(!items.length){c.innerHTML+='<div class="empty-msg">暂无条目</div>';}
+  items.forEach((it,i)=>{
+    const d=mk('div','ed-row');
+    d.innerHTML=`<input placeholder="条目" value="${esc(it.text)}" oninput="S.content.list.items[${i}].text=this.value;uc()"><button class="x-btn" onclick="S.content.list.items.splice(${i},1);refresh()">&#10005;</button>`;
+    c.appendChild(d);
+  });
+  addBtn(c,()=>{if(!S.content.list)S.content.list={title:'',items:[]};S.content.list.items.push({text:'新条目'});refresh();});
+}
+function renderLT(c){
+  const ent=S.content.lowerThird?.entries||[];
+  if(!ent.length){c.innerHTML='<div class="empty-msg">暂无角标</div>';}
+  ent.forEach((e,i)=>{
+    const d=mk('div','ed-row');
+    d.innerHTML=`<input placeholder="姓名" value="${esc(e.name)}" oninput="S.content.lowerThird.entries[${i}].name=this.value;uc()"><input placeholder="角色" value="${esc(e.role)}" oninput="S.content.lowerThird.entries[${i}].role=this.value;uc()"><button class="x-btn" onclick="S.content.lowerThird.entries.splice(${i},1);refresh()">&#10005;</button>`;
+    c.appendChild(d);
+  });
+  addBtn(c,()=>{if(!S.content.lowerThird)S.content.lowerThird={entries:[]};S.content.lowerThird.entries.push({name:'姓名',role:'角色'});refresh();});
+}
+function renderCap(c){
+  const lines=S.content.caption?.lines||[];
+  if(!lines.length){c.innerHTML='<div class="empty-msg">暂无字幕</div>';}
+  lines.forEach((l,i)=>{
+    const d=mk('div','ed-row');
+    d.innerHTML=`<input placeholder="字幕" value="${esc(l.text)}" oninput="S.content.caption.lines[${i}].text=this.value;uc()"><button class="x-btn" onclick="S.content.caption.lines.splice(${i},1);refresh()">&#10005;</button>`;
+    c.appendChild(d);
+  });
+  addBtn(c,()=>{if(!S.content.caption)S.content.caption={lines:[]};S.content.caption.lines.push({text:'新字幕'});refresh();});
+}
+function renderEmp(c){
+  const lines=S.content.emphasis?.lines||[];
+  if(!lines.length){c.innerHTML='<div class="empty-msg">暂无强调</div>';}
+  lines.forEach((l,i)=>{
+    const d=mk('div','ed-row');
+    d.innerHTML=`<input class="narrow" placeholder="前" value="${esc(l.pre)}" oninput="S.content.emphasis.lines[${i}].pre=this.value;uc()"><input class="em" placeholder="强调词" value="${esc(l.token)}" oninput="S.content.emphasis.lines[${i}].token=this.value;uc()"><input class="narrow" placeholder="后" value="${esc(l.post)}" oninput="S.content.emphasis.lines[${i}].post=this.value;uc()"><button class="x-btn" onclick="S.content.emphasis.lines.splice(${i},1);refresh()">&#10005;</button>`;
+    c.appendChild(d);
+  });
+  addBtn(c,()=>{if(!S.content.emphasis)S.content.emphasis={lines:[]};S.content.emphasis.lines.push({pre:'',token:'强调',post:''});refresh();});
+}
+
+function refresh(){renderSceneTabs();renderEditor();uc();}
+function addBtn(c,fn){const b=document.createElement('button');b.className='add-btn';b.textContent='+ 添加';b.onclick=fn;c.appendChild(b);}
+function mk(tag,cls){const e=document.createElement(tag);e.className=cls;return e;}
+
+// === Build config ===
+function buildCfg(){
+  const cfg={theme:S.theme,content:{}};
+  if(S.content.hero?.entries?.length) cfg.content.hero=S.content.hero;
+  if(S.content.list?.items?.length){cfg.content.list={items:S.content.list.items};if(S.content.list.title)cfg.content.list.title=S.content.list.title;}
+  if(S.content.lowerThird?.entries?.length) cfg.content.lowerThird=S.content.lowerThird;
+  if(S.content.caption?.lines?.length) cfg.content.caption=S.content.caption;
+  if(S.content.emphasis?.lines?.length) cfg.content.emphasis=S.content.emphasis;
+  if(timOv){cfg.timing={inF:+document.getElementById('inF').value,holdF:+document.getElementById('holdF').value,outF:+document.getElementById('outF').value};}
+  const st={};
+  const bg=document.getElementById('bgT').value.trim(),fg=document.getElementById('fgT').value.trim(),ac=document.getElementById('acT').value.trim();
+  if(bg)st.background=bg;if(fg)st.color=fg;if(ac)st.accent=ac;
+  if(Object.keys(st).length)cfg.style=st;
+  const eff={};
+  for(const r of ORD){const i=+document.getElementById(`eo-${r}-in`).value,o=+document.getElementById(`eo-${r}-out`).value;if(i>=1&&i<=100&&o>=1&&o<=100)eff[r]={inEffectId:i,outEffectId:o};}
+  if(Object.keys(eff).length)cfg.effects=eff;
+  return cfg;
+}
+
+// === Update ===
+function uc(){
+  const cfg=buildCfg();const json=JSON.stringify(cfg,null,2);
+  document.getElementById('oJson').textContent=json;
+  document.getElementById('oReadme').textContent=genRm(cfg);
+  document.getElementById('oCmd').textContent=`npx remotion render src/index.ts SceneTheme out.mp4 --props='${json.trim()}'`;
+  const total=ORD.reduce((a,r)=>a+getCnt(r),0);
+  document.getElementById('botInfo').textContent=`${total} 项 · ${TH[S.theme].name}`;
+  restartPv();
+}
+function genRm(cfg){
+  const th=TH[cfg.theme];if(!th)return'';
+  const json=JSON.stringify(cfg,null,2);
+  const cmd=`npx remotion render src/index.ts SceneTheme out.mp4 --props='${json.trim()}'`;
+  const sl={hero:['主标题','Hero'],list:['列表','List'],lowerThird:['角标','Lower-third'],caption:['字幕','Caption'],emphasis:['强调','Emphasis']};
+  const order=cfg.order||ORD;const active=order.filter(r=>cfg.content[r]);
+  const list=active.map(r=>`${sl[r][0]}(${sl[r][1]})`).join('→');
+  const t=cfg.timing||th.timing;const slot=t.inF+t.holdF+t.outF;
+  let f=0;if(cfg.content.hero)f+=(cfg.content.hero.entries.length||1)*slot;if(cfg.content.list)f+=Math.max(0,(cfg.content.list.items.length-1))*22+48;if(cfg.content.lowerThird)f+=(cfg.content.lowerThird.entries.length||1)*slot;if(cfg.content.caption)f+=(cfg.content.caption.lines.length||1)*slot;if(cfg.content.emphasis)f+=(cfg.content.emphasis.lines.length||1)*slot;if(!f)f=slot;
+  return`# ${th.name} / ${th.en}\n> ${th.desc}\n\n\`\`\`bash\n${cmd}\n\`\`\`\n\nScenes: ${list}\nDuration: ${f}f (${(f/30).toFixed(1)}s)\nTiming: in=${t.inF}f hold=${t.holdF}f out=${t.outF}f`;
+}
+function stab(n,el){document.querySelectorAll('.ot').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('t-'+n).classList.add('on');}
+
+// === Preview ===
+let an=null,playing=true,si=0,ph='in',pT=0,lTs=0,speed=1;
+const SP=[0.5,1,1.5,2];let spi=1;
+function cycleSpeed(){spi=(spi+1)%SP.length;speed=SP[spi];document.getElementById('spBtn').textContent=speed+'x';}
+
+function getScenes(){
+  const cfg=buildCfg();const order=cfg.order||ORD;const sc=[];
+  for(const r of order){
+    const c=cfg.content[r];if(!c)continue;
+    const th=TH[S.theme];const ef=cfg.effects?.[r]?{i:cfg.effects[r].inEffectId,o:cfg.effects[r].outEffectId}:th.effects[r];
+    const st={...th.style,...(cfg.style||{})};const tm=cfg.timing||th.timing;
+    if(r==='hero'&&c.entries?.length)for(const e of c.entries)sc.push({r,text:e.text,sub:e.sub||'',ef,st,tm,fs:24,fw:st.fontWeight});
+    else if(r==='list'&&c.items?.length)for(const it of c.items)sc.push({r,text:it.text,sub:'',ef,st,tm,fs:14,fw:st.fontWeight});
+    else if(r==='lowerThird'&&c.entries?.length)for(const e of c.entries)sc.push({r,text:e.name,sub:e.role,ef,st,tm,fs:18,fw:st.fontWeight});
+    else if(r==='caption'&&c.lines?.length)for(const l of c.lines)sc.push({r,text:l.text,sub:'',ef,st,tm,fs:14,fw:st.fontWeight});
+    else if(r==='emphasis'&&c.lines?.length)for(const l of c.lines)sc.push({r,text:l.pre,token:l.token,post:l.post,sub:'',ef,st,tm,fs:18,fw:st.fontWeight,accent:st.accent});
   }
-  return st;
+  if(!sc.length){const th=TH[S.theme];sc.push({r:'hero',text:'预览',sub:'',ef:th.effects.hero,st:th.style,tm:th.timing,fs:24,fw:800});}
+  return sc;
 }
 
-const GL = 'アカサタナ01XΞΨ#%&@王金木水火土';
-function scramble(text, prog) {
-  return Array.from(text).map((ch, i) => {
-    const lock = (i / Math.max(text.length, 1)) * 0.85;
-    return prog > lock + 0.15 ? ch : GL[Math.floor(Math.random() * GL.length)];
-  }).join('');
+function renderChips(sc){
+  const c=document.getElementById('pvChips');c.innerHTML='';
+  sc.forEach((s,i)=>{const b=document.createElement('button');b.className='chip'+(i===si?' on':'');b.textContent=LB[s.r]||s.r;b.onclick=()=>{si=i;pT=0;ph='in';lTs=0;renderChips(sc);};c.appendChild(b);});
 }
 
-function tick(ts) {
-  if (!playing) { anim = requestAnimationFrame(tick); return; }
-  const scenes = getScenes();
-  if (!scenes.length) { anim = requestAnimationFrame(tick); return; }
-  const dt = lastTs ? (ts - lastTs) / 1000 * speed : 0;
-  lastTs = ts;
-  const sc = scenes[Math.min(scIdx, scenes.length-1)];
-  const fps = 30;
-  const inD = sc.timing.inF/fps, holdD = sc.timing.holdF/fps, outD = sc.timing.outF/fps;
-  const total = inD + holdD + outD;
-  pT += dt;
-  let ph, t;
-  if (pT < inD) { ph='in'; t=pT/inD; }
-  else if (pT < inD+holdD) { ph='hold'; t=1; }
-  else if (pT < total) { ph='out'; t=(pT-inD-holdD)/outD; }
-  else { scIdx = (scIdx+1) % scenes.length; pT=0; ph='in'; t=0; renderChips(scenes); }
-  phase = ph;
-  const eid = ph==='out' ? sc.eff.outEffectId : sc.eff.inEffectId;
-  const fx = ph==='hold' ? {opacity:1,transform:'none',filter:'none',clipPath:'none'} : simFx(eid,ph,t);
-  const stage = document.getElementById('previewStage');
-  const inner = document.getElementById('previewInner');
-  const txt = document.getElementById('previewText');
-  const sub = document.getElementById('previewSub');
-  const lbl = document.getElementById('previewLabel');
-  const sty = sc.style;
-  stage.style.background = sty.background;
-  inner.style.color = sty.color;
-  inner.style.fontFamily = sty.fontFamily;
-  let display = sc.text;
-  const cat = Math.ceil(eid/10);
-  if (cat===8 && ph!=='hold') display = scramble(sc.text, ph==='in'?t:1-t);
-  if (sc.role==='emphasis' && sc.token) {
-    const tokOp = ph==='hold' ? 1 : (ph==='in' ? Math.min(1,t*1.5) : Math.max(0,1-t*1.5));
-    txt.innerHTML = `${esc(sc.text)}<span style="color:${sc.accent};font-weight:900;opacity:${tokOp}">${esc(sc.token)}</span>${esc(sc.post||'')}`;
-  } else { txt.textContent = display; }
-  txt.style.fontSize = sc.fs+'px'; txt.style.fontWeight = sc.fw; txt.style.letterSpacing = (sty.letterSpacing||0)+'px';
-  txt.style.opacity = fx.opacity??1; txt.style.transform = fx.transform||'none'; txt.style.filter = fx.filter||'none'; txt.style.clipPath = fx.clipPath||'none';
-  sub.textContent = sc.sub||'';
-  sub.style.opacity = ph==='hold' ? 0.6 : (ph==='in' ? Math.max(0,(t-0.5)*1.2) : Math.max(0,(1-t*2)*0.6));
-  sub.style.color = sty.color;
-  const cl = String.fromCharCode(64+Math.ceil(eid/10));
-  lbl.textContent = `${(LABELS[sc.role]||sc.role).toUpperCase()} · ${cl}${String(eid).padStart(2,'0')}`;
-  lbl.style.color = sty.color;
-  const prog = Math.min(1, pT/total);
-  document.getElementById('tlProgress').style.width = (prog*100)+'%';
-  const phl = {in:'入场',hold:'停留',out:'出场'};
-  document.getElementById('tlInfo').textContent = `${phl[ph]||ph} ${pT.toFixed(1)}s / ${total.toFixed(1)}s`;
-  anim = requestAnimationFrame(tick);
-}
-
-function startPreview() { scIdx=0; phase='in'; pT=0; lastTs=0; renderChips(getScenes()); if(anim) cancelAnimationFrame(anim); anim=requestAnimationFrame(tick); }
-function restartPreview() { const sc=getScenes(); if(scIdx>=sc.length) scIdx=0; pT=0; phase='in'; lastTs=0; renderChips(sc); }
-function togglePlay() { playing=!playing; lastTs=0; document.getElementById('playBtn').innerHTML = playing ? '&#9646;&#9646;' : '&#9654;'; }
-
-// ============================================================
-//  Export / Copy
-// ============================================================
-function exportZip() {
-  const cfg = buildConfig();
-  const json = JSON.stringify(cfg,null,2)+'\n';
-  downloadZip({'theme.json':json,'README.md':genReadme(cfg)}, `theme-${cfg.theme}.zip`);
-  showToast('主题包已下载');
-}
-function copyJson() { navigator.clipboard.writeText(JSON.stringify(buildConfig(),null,2)); showToast('JSON 已复制'); }
-function copyRenderCmd() {
-  const json = JSON.stringify(buildConfig(),null,2);
-  navigator.clipboard.writeText(`npx remotion render src/index.ts SceneTheme out.mp4 --props='${json.trim()}'`);
-  showToast('渲染命令已复制');
-}
-function resetConfig() {
-  S = {theme:'glitch', content: structuredClone(DEMO)};
-  timingOverride = false;
-  renderThemeGrid(); renderAllSections(); syncTimingFromTheme();
-  ['bgText','fgText','acText','orderInput'].forEach(id => document.getElementById(id).value = '');
-  ORDER.forEach(r => { document.getElementById(`eo-${r}-in`).value=''; document.getElementById(`eo-${r}-out`).value=''; });
-  updateConfig();
-  showToast('已重置');
-}
-
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2500);
-}
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// ============================================================
-//  ZIP builder
-// ============================================================
-const crcT = new Uint32Array(256);
-for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;crcT[i]=c;}
-function crc32(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=(c>>>8)^crcT[(c^d[i])&0xFF];return(c^0xFFFFFFFF)>>>0;}
-function createZip(files){
-  const enc=new TextEncoder();const entries=[];const parts=[];let offset=0;
-  for(const[name,content]of Object.entries(files)){
-    const data=enc.encode(content);const crc=crc32(data);const nb=enc.encode(name);
-    const local=[0x50,0x4B,0x03,0x04,20,0,0,0,0,0,0,0,0,0,crc&0xFF,(crc>>>8)&0xFF,(crc>>>16)&0xFF,(crc>>>24)&0xFF,data.length&0xFF,(data.length>>>8)&0xFF,(data.length>>>16)&0xFF,(data.length>>>24)&0xFF,data.length&0xFF,(data.length>>>8)&0xFF,(data.length>>>16)&0xFF,(data.length>>>24)&0xFF,nb.length&0xFF,(nb.length>>>8)&0xFF,0,0,...nb,...data];
-    parts.push(...local);entries.push({name,data,crc,offset});offset+=local.length;
+function simFx(id,ph,t){
+  const cat=Math.ceil(id/10);const ez=t=>1-Math.pow(1-t,3);const p=ph==='in'?ez(Math.min(1,Math.max(0,t))):1-ez(Math.min(1,Math.max(0,t)));const s={};
+  switch(cat){
+    case 1:s.opacity=p;break;
+    case 2:s.opacity=Math.min(1,p*2);s.transform=`translateY(${(1-p)*35}px)`;break;
+    case 3:s.opacity=Math.min(1,p*1.5);s.transform=`scale(${.3+p*.7}) rotate(${(ph==='in'?-1:1)*(1-p)*15}deg)`;break;
+    case 4:s.opacity=p;s.filter=`blur(${(1-p)*8}px)`;break;
+    case 5:s.opacity=p;s.transform=`translateY(${Math.sin(t*Math.PI*3)*(1-p)*10}px) rotate(${(1-p)*8}deg)`;break;
+    case 6:s.opacity=1;s.clipPath=`inset(0 ${(1-p)*100}% 0 0)`;s.transform=`translateX(${(1-p)*-8}px)`;break;
+    case 7:s.opacity=1;s.clipPath=id%2?`inset(${(1-p)*50}% 0 ${(1-p)*50}% 0)`:`inset(0 ${(1-p)*50}% 0 ${(1-p)*50}%)`;break;
+    case 8:s.opacity=Math.min(1,p*1.5);s.transform=`translate(${(1-p)*Math.sin(t*37)*6}px,${(1-p)*Math.cos(t*53)*3}px)`;s.filter=`brightness(${1+(1-p)*.5})`;break;
+    case 9:s.opacity=p;s.transform=`scale(${.2+p*.8}) rotate(${(1-p)*180}deg)`;s.filter=`blur(${(1-p)*3}px)`;break;
+    case 10:s.opacity=p;s.filter=`brightness(${1+(1-p)*1.5}) saturate(${.5+p*.5})`;s.transform=`scale(${.95+p*.05})`;break;
+    case 11:s.opacity=Math.min(1,p*2);s.transform=`translateX(${(1-p)*Math.sin(t*100)*5}px) skewX(${(1-p)*8}deg)`;s.filter=`hue-rotate(${(1-p)*90}deg) brightness(${1+(1-p)*.8})`;break;
+    case 12:s.opacity=p;s.transform=`translate(${(1-p)*Math.sin(t*23)*12}px,${(1-p)*Math.cos(t*31)*6}px) rotate(${(1-p)*Math.sin(t*17)*18}deg) scale(${.5+p*.5})`;break;
+    default:s.opacity=p;
   }
-  const central=[];let cs=0;
-  for(const e of entries){const nb=enc.encode(e.name);const ch=[0x50,0x4B,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0,e.crc&0xFF,(e.crc>>>8)&0xFF,(e.crc>>>16)&0xFF,(e.crc>>>24)&0xFF,e.data.length&0xFF,(e.data.length>>>8)&0xFF,(e.data.length>>>16)&0xFF,(e.data.length>>>24)&0xFF,e.data.length&0xFF,(e.data.length>>>8)&0xFF,(e.data.length>>>16)&0xFF,(e.data.length>>>24)&0xFF,nb.length&0xFF,(nb.length>>>8)&0xFF,0,0,0,0,0,0,0,0,0,0,e.offset&0xFF,(e.offset>>>8)&0xFF,(e.offset>>>16)&0xFF,(e.offset>>>24)&0xFF,...nb];central.push(...ch);cs+=ch.length;}
-  const eocd=[0x50,0x4B,0x05,0x06,0,0,0,0,entries.length&0xFF,(entries.length>>>8)&0xFF,entries.length&0xFF,(entries.length>>>8)&0xFF,cs&0xFF,(cs>>>8)&0xFF,(cs>>>16)&0xFF,(cs>>>24)&0xFF,offset&0xFF,(offset>>>8)&0xFF,(offset>>>16)&0xFF,(offset>>>24)&0xFF,0,0];
-  return new Uint8Array([...parts,...central,...eocd]);
+  return s;
 }
+
+const GL='アカサタナ01XΞΨ#%&@王金木水火土';
+function scr(text,prog){return Array.from(text).map((ch,i)=>{const l=(i/Math.max(text.length,1))*.85;return prog>l+.15?ch:GL[Math.floor(Math.random()*GL.length)];}).join('');}
+
+function tick(ts){
+  if(!playing){an=requestAnimationFrame(tick);return;}
+  const sc=getScenes();if(!sc.length){an=requestAnimationFrame(tick);return;}
+  const dt=lTs?(ts-lTs)/1000*speed:0;lTs=ts;
+  const s=sc[Math.min(si,sc.length-1)];
+  const fps=30,iD=s.tm.inF/fps,hD=s.tm.holdF/fps,oD=s.tm.outF/fps,tot=iD+hD+oD;
+  pT+=dt;
+  let p,t;
+  if(pT<iD){p='in';t=pT/iD;}else if(pT<iD+hD){p='hold';t=1;}else if(pT<tot){p='out';t=(pT-iD-hD)/oD;}else{si=(si+1)%sc.length;pT=0;p='in';t=0;renderChips(sc);}
+  ph=p;
+  const eid=p==='out'?s.ef.o:s.ef.i;
+  const fx=p==='hold'?{opacity:1,transform:'none',filter:'none',clipPath:'none'}:simFx(eid,p,t);
+  const stage=document.getElementById('pvStage'),inner=document.getElementById('pvInner');
+  const txt=document.getElementById('pvText'),sub=document.getElementById('pvSub'),tag=document.getElementById('pvTag');
+  const sty=s.st;
+  stage.style.background=sty.background;inner.style.color=sty.color;inner.style.fontFamily=sty.fontFamily;
+  let disp=s.text;const cat=Math.ceil(eid/10);
+  if(cat===8&&p!=='hold')disp=scr(s.text,p==='in'?t:1-t);
+  if(s.r==='emphasis'&&s.token){const to=p==='hold'?1:(p==='in'?Math.min(1,t*1.5):Math.max(0,1-t*1.5));txt.innerHTML=`${esc(s.text)}<span style="color:${s.accent};font-weight:900;opacity:${to}">${esc(s.token)}</span>${esc(s.post||'')}`;}else txt.textContent=disp;
+  txt.style.fontSize=s.fs+'px';txt.style.fontWeight=s.fw;txt.style.letterSpacing=(sty.letterSpacing||0)+'px';
+  txt.style.opacity=fx.opacity??1;txt.style.transform=fx.transform||'none';txt.style.filter=fx.filter||'none';txt.style.clipPath=fx.clipPath||'none';
+  sub.textContent=s.sub||'';sub.style.opacity=p==='hold'?.5:(p==='in'?Math.max(0,(t-.5)*1.2):Math.max(0,(1-t*2)*.5));sub.style.color=sty.color;
+  const cl=String.fromCharCode(64+Math.ceil(eid/10));
+  tag.textContent=`${(LB[s.r]||s.r).toUpperCase()} · ${cl}${String(eid).padStart(2,'0')}`;tag.style.color=sty.color;
+  document.getElementById('tlP').style.width=(Math.min(1,pT/tot)*100)+'%';
+  const pl={in:'入场',hold:'停留',out:'出场'};
+  document.getElementById('tlI').textContent=`${pl[p]||p} ${pT.toFixed(1)}s/${tot.toFixed(1)}s`;
+  an=requestAnimationFrame(tick);
+}
+function startPv(){si=0;ph='in';pT=0;lTs=0;renderChips(getScenes());if(an)cancelAnimationFrame(an);an=requestAnimationFrame(tick);}
+function restartPv(){const sc=getScenes();if(si>=sc.length)si=0;pT=0;ph='in';lTs=0;renderChips(sc);}
+function togglePlay(){playing=!playing;lTs=0;document.getElementById('playBtn').innerHTML=playing?'&#9646;&#9646;':'&#9654;';}
+
+// === Export ===
+function exportZip(){const cfg=buildCfg();downloadZip({'theme.json':JSON.stringify(cfg,null,2)+'\n','README.md':genRm(cfg)},`theme-${cfg.theme}.zip`);toast('已下载');}
+function copyJson(){navigator.clipboard.writeText(JSON.stringify(buildCfg(),null,2));toast('JSON 已复制');}
+function copyRenderCmd(){const j=JSON.stringify(buildCfg(),null,2);navigator.clipboard.writeText(`npx remotion render src/index.ts SceneTheme out.mp4 --props='${j.trim()}'`);toast('命令已复制');}
+function resetConfig(){S={theme:'glitch',content:structuredClone(DEMO)};timOv=false;renderPills();renderSceneTabs();renderEditor();syncTim();['bgT','fgT','acT'].forEach(id=>document.getElementById(id).value='');ORD.forEach(r=>{document.getElementById(`eo-${r}-in`).value='';document.getElementById(`eo-${r}-out`).value='';});uc();toast('已重置');}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// === ZIP ===
+const cT=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;cT[i]=c;}
+function crc32(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=(c>>>8)^cT[(c^d[i])&0xFF];return(c^0xFFFFFFFF)>>>0;}
+function createZip(files){const enc=new TextEncoder();const entries=[];const parts=[];let offset=0;for(const[name,content]of Object.entries(files)){const data=enc.encode(content);const crc=crc32(data);const nb=enc.encode(name);const local=[0x50,0x4B,0x03,0x04,20,0,0,0,0,0,0,0,0,0,crc&0xFF,(crc>>>8)&0xFF,(crc>>>16)&0xFF,(crc>>>24)&0xFF,data.length&0xFF,(data.length>>>8)&0xFF,(data.length>>>16)&0xFF,(data.length>>>24)&0xFF,data.length&0xFF,(data.length>>>8)&0xFF,(data.length>>>16)&0xFF,(data.length>>>24)&0xFF,nb.length&0xFF,(nb.length>>>8)&0xFF,0,0,...nb,...data];parts.push(...local);entries.push({name,data,crc,offset});offset+=local.length;}const central=[];let cs=0;for(const e of entries){const nb=enc.encode(e.name);const ch=[0x50,0x4B,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0,e.crc&0xFF,(e.crc>>>8)&0xFF,(e.crc>>>16)&0xFF,(e.crc>>>24)&0xFF,e.data.length&0xFF,(e.data.length>>>8)&0xFF,(e.data.length>>>16)&0xFF,(e.data.length>>>24)&0xFF,e.data.length&0xFF,(e.data.length>>>8)&0xFF,(e.data.length>>>16)&0xFF,(e.data.length>>>24)&0xFF,nb.length&0xFF,(nb.length>>>8)&0xFF,0,0,0,0,0,0,0,0,0,0,e.offset&0xFF,(e.offset>>>8)&0xFF,(e.offset>>>16)&0xFF,(e.offset>>>24)&0xFF,...nb];central.push(...ch);cs+=ch.length;}const eocd=[0x50,0x4B,0x05,0x06,0,0,0,0,entries.length&0xFF,(entries.length>>>8)&0xFF,entries.length&0xFF,(entries.length>>>8)&0xFF,cs&0xFF,(cs>>>8)&0xFF,(cs>>>16)&0xFF,(cs>>>24)&0xFF,offset&0xFF,(offset>>>8)&0xFF,(offset>>>16)&0xFF,(offset>>>24)&0xFF,0,0];return new Uint8Array([...parts,...central,...eocd]);}
 function downloadZip(files,name){const z=createZip(files);const b=new Blob([z.buffer],{type:'application/zip'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
 
-// Boot
 init();
 </script>
 </body>
